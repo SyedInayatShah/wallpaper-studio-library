@@ -1,0 +1,83 @@
+[
+  {
+    "id": "still-aurora-drift",
+    "title": "Aurora Drift",
+    "kind": "still",
+    "file": "stills/aurora-drift.jpg",
+    "thumb": "thumbs/aurora-drift.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "still-deep-current",
+    "title": "Deep Current",
+    "kind": "still",
+    "file": "stills/deep-current.jpg",
+    "thumb": "thumbs/deep-current.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "still-dusk-peaks",
+    "title": "Dusk Peaks",
+    "kind": "still",
+    "file": "stills/dusk-peaks.jpg",
+    "thumb": "thumbs/dusk-peaks.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "still-ember-waves",
+    "title": "Ember Waves",
+    "kind": "still",
+    "file": "stills/ember-waves.jpg",
+    "thumb": "thumbs/ember-waves.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "still-midnight-grid",
+    "title": "Midnight Grid",
+    "kind": "still",
+    "file": "stills/midnight-grid.jpg",
+    "thumb": "thumbs/midnight-grid.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "still-soft-fog",
+    "title": "Soft Fog",
+    "kind": "still",
+    "file": "stills/soft-fog.jpg",
+    "thumb": "thumbs/soft-fog.jpg",
+    "width": 2880,
+    "height": 1800
+  },
+  {
+    "id": "live-aurora-flow",
+    "title": "Aurora Flow",
+    "kind": "live",
+    "file": "live/aurora-flow.mp4",
+    "thumb": "thumbs/aurora-flow.jpg",
+    "width": 1920,
+    "height": 1200
+  },
+  {
+    "id": "live-ember-glow",
+    "title": "Ember Glow",
+    "kind": "live",
+    "file": "live/ember-glow.mp4",
+    "thumb": "thumbs/ember-glow.jpg",
+    "width": 1920,
+    "height": 1200
+  },
+  {
+    "id": "live-ocean-glow",
+    "title": "Ocean Glow",
+    "kind": "live",
+    "file": "live/ocean-glow.mp4",
+    "thumb": "thumbs/ocean-glow.jpg",
+    "width": 1920,
+    "height": 1200
+  }
+]

@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""Rebuilds catalog.json and thumbs/ from the files in stills/ and live/.
+
+Add wallpapers by dropping files into stills/ (jpg/png) or live/ (mp4/gif),
+run this script, then commit and push. The app picks changes up automatically.
+"""
+import json
+import os
+import subprocess
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+STILL_EXT = {".jpg", ".jpeg", ".png"}
+LIVE_EXT = {".mp4", ".mov", ".gif"}
+
+
+def title_of(name):
+    return name.replace("-", " ").replace("_", " ").title()
+
+
+def dims(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext in STILL_EXT:
+        out = subprocess.check_output(["sips", "-g", "pixelWidth", "-g", "pixelHeight", path]).decode()
+        w = h = 0
+        for line in out.splitlines():
+            if "pixelWidth" in line:
+                w = int(line.split()[-1])
+            if "pixelHeight" in line:
+                h = int(line.split()[-1])
+        return w, h
+    out = subprocess.check_output([
+        "ffprobe", "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=width,height", "-of", "csv=p=0", path,
+    ]).decode().strip().split(",")
+    return int(out[0]), int(out[1])
+
+
+def make_thumb(src, dest):
+    ext = os.path.splitext(src)[1].lower()
+    if ext in STILL_EXT:
+        subprocess.check_call(
+            ["sips", "-Z", "560", "-s", "format", "jpeg", src, "--out", dest],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+    else:
+        subprocess.check_call([
+            "ffmpeg", "-v", "error", "-y", "-ss", "1", "-i", src,
+            "-frames:v", "1", "-vf", "scale=560:-1", "-q:v", "4", dest,
+        ])
+
+
+def scan(folder, exts, kind):
+    entries = []
+    directory = os.path.join(ROOT, folder)
+    for filename in sorted(os.listdir(directory)):
+        base, ext = os.path.splitext(filename)
+        if ext.lower() not in exts:
+            continue
+        path = os.path.join(directory, filename)
+        w, h = dims(path)
+        thumb_name = f"{base}.jpg"
+        make_thumb(path, os.path.join(ROOT, "thumbs", thumb_name))
+        entries.append({
+            "id": f"{kind}-{base}",
+            "title": title_of(base),
+            "kind": kind,
+            "file": f"{folder}/{filename}",
+            "thumb": f"thumbs/{thumb_name}",
+            "width": w,
+            "height": h,
+        })
+    return entries
+
+
+os.makedirs(os.path.join(ROOT, "thumbs"), exist_ok=True)
+catalog = scan("stills", STILL_EXT, "still") + scan("live", LIVE_EXT, "live")
+with open(os.path.join(ROOT, "catalog.json"), "w") as f:
+    json.dump(catalog, f, indent=2)
+print(f"catalog.json written: {len(catalog)} wallpapers")
