@@ -13,3 +13,19 @@ Explore tab fetches `catalog.json` from this repo and shows everything listed.
 
 Only add content you created or that is licensed for redistribution.
 All seed wallpapers here are original, procedurally generated art (public domain).
+
+## Community submissions
+
+Anyone can share a wallpaper: use **Submit Wallpaper** in the app (or
+[open a submission issue](../../issues/new?template=submit-wallpaper.md) here),
+attach the file, and confirm it's yours to share and appropriate.
+
+Every submission is **reviewed by the maintainer before it appears** in the app.
+To approve one, copy the attached file's URL from the issue and run:
+
+```bash
+./approve.sh <file-url> <kebab-case-name> <still|live>
+```
+
+Then close the issue. Rules: original or freely redistributable content only;
+nothing NSFW, hateful, or containing personal information.
