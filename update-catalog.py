@@ -49,6 +49,18 @@ def make_thumb(src, dest):
         ])
 
 
+def load_meta():
+    """meta.json maps filename-base -> {"creator": ..., "created": "9/9/26"}."""
+    meta_path = os.path.join(ROOT, "meta.json")
+    if os.path.exists(meta_path):
+        with open(meta_path) as f:
+            return json.load(f)
+    return {}
+
+
+META = load_meta()
+
+
 def scan(folder, exts, kind):
     entries = []
     directory = os.path.join(ROOT, folder)
@@ -60,7 +72,7 @@ def scan(folder, exts, kind):
         w, h = dims(path)
         thumb_name = f"{base}.jpg"
         make_thumb(path, os.path.join(ROOT, "thumbs", thumb_name))
-        entries.append({
+        entry = {
             "id": f"{kind}-{base}",
             "title": title_of(base),
             "kind": kind,
@@ -68,7 +80,13 @@ def scan(folder, exts, kind):
             "thumb": f"thumbs/{thumb_name}",
             "width": w,
             "height": h,
-        })
+        }
+        info = META.get(base, {})
+        if info.get("creator"):
+            entry["creator"] = info["creator"]
+        if info.get("created"):
+            entry["created"] = info["created"]
+        entries.append(entry)
     return entries
 
 

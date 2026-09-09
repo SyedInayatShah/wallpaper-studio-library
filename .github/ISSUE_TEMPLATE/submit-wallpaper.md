@@ -8,11 +8,15 @@ labels: submission
 ## Submit your wallpaper
 
 1. **Drag your wallpaper file into this text box** (image, GIF, or MP4 — GitHub will upload it and insert a link).
-2. Give it a name:
+2. Fill in the details:
 
 **Wallpaper name:**
 
 **Type:** still / live
+
+**Your name / credit (optional):**
+
+**Date created (like 9/9/26, optional):**
 
 3. Confirm both of these by leaving the checkboxes ticked:
 

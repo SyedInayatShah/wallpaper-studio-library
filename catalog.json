@@ -6,7 +6,9 @@
     "file": "stills/aurora-drift.jpg",
     "thumb": "thumbs/aurora-drift.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "still-deep-current",
@@ -15,7 +17,9 @@
     "file": "stills/deep-current.jpg",
     "thumb": "thumbs/deep-current.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "still-dusk-peaks",
@@ -24,7 +28,9 @@
     "file": "stills/dusk-peaks.jpg",
     "thumb": "thumbs/dusk-peaks.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "still-ember-waves",
@@ -33,7 +39,9 @@
     "file": "stills/ember-waves.jpg",
     "thumb": "thumbs/ember-waves.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "still-midnight-grid",
@@ -42,7 +50,9 @@
     "file": "stills/midnight-grid.jpg",
     "thumb": "thumbs/midnight-grid.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "still-soft-fog",
@@ -51,7 +61,9 @@
     "file": "stills/soft-fog.jpg",
     "thumb": "thumbs/soft-fog.jpg",
     "width": 2880,
-    "height": 1800
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "live-aurora-flow",
@@ -60,7 +72,9 @@
     "file": "live/aurora-flow.mp4",
     "thumb": "thumbs/aurora-flow.jpg",
     "width": 1920,
-    "height": 1200
+    "height": 1200,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "live-ember-glow",
@@ -69,7 +83,9 @@
     "file": "live/ember-glow.mp4",
     "thumb": "thumbs/ember-glow.jpg",
     "width": 1920,
-    "height": 1200
+    "height": 1200,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   },
   {
     "id": "live-ocean-glow",
@@ -78,6 +94,8 @@
     "file": "live/ocean-glow.mp4",
     "thumb": "thumbs/ocean-glow.jpg",
     "width": 1920,
-    "height": 1200
+    "height": 1200,
+    "creator": "Wallpaper Studio",
+    "created": "9/9/26"
   }
 ]
