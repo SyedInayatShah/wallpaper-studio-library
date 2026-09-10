@@ -77,17 +77,6 @@
     "created": "9/9/26"
   },
   {
-    "id": "still-t-carpet",
-    "title": "T Carpet",
-    "kind": "still",
-    "file": "stills/t-carpet.png",
-    "thumb": "thumbs/t-carpet.jpg",
-    "width": 800,
-    "height": 800,
-    "creator": "haha",
-    "created": "9/10/26"
-  },
-  {
     "id": "live-aurora-flow",
     "title": "Aurora Flow",
     "kind": "live",

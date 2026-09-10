@@ -90,8 +90,50 @@ def scan(folder, exts, kind):
     return entries
 
 
+def scan_pending():
+    """pending/ holds submissions awaiting review — published to pending.json,
+    which the app shows only to the maintainer."""
+    entries = []
+    directory = os.path.join(ROOT, "pending")
+    if not os.path.isdir(directory):
+        return entries
+    for filename in sorted(os.listdir(directory)):
+        base, ext = os.path.splitext(filename)
+        e = ext.lower()
+        if e in STILL_EXT:
+            kind = "still"
+        elif e in LIVE_EXT:
+            kind = "live"
+        else:
+            continue
+        path = os.path.join(directory, filename)
+        w, h = dims(path)
+        thumb_name = f"pending-{base}.jpg"
+        make_thumb(path, os.path.join(ROOT, "thumbs", thumb_name))
+        entry = {
+            "id": f"pending-{base}",
+            "title": title_of(base),
+            "kind": kind,
+            "file": f"pending/{filename}",
+            "thumb": f"thumbs/{thumb_name}",
+            "width": w,
+            "height": h,
+        }
+        info = META.get(base, {})
+        if info.get("creator"):
+            entry["creator"] = info["creator"]
+        if info.get("created"):
+            entry["created"] = info["created"]
+        entries.append(entry)
+    return entries
+
+
 os.makedirs(os.path.join(ROOT, "thumbs"), exist_ok=True)
+os.makedirs(os.path.join(ROOT, "pending"), exist_ok=True)
 catalog = scan("stills", STILL_EXT, "still") + scan("live", LIVE_EXT, "live")
 with open(os.path.join(ROOT, "catalog.json"), "w") as f:
     json.dump(catalog, f, indent=2)
-print(f"catalog.json written: {len(catalog)} wallpapers")
+pending = scan_pending()
+with open(os.path.join(ROOT, "pending.json"), "w") as f:
+    json.dump(pending, f, indent=2)
+print(f"catalog.json: {len(catalog)} wallpapers · pending.json: {len(pending)} awaiting review")
