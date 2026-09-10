@@ -44,6 +44,17 @@
     "created": "9/9/26"
   },
   {
+    "id": "still-emerald-veil",
+    "title": "Emerald Veil",
+    "kind": "still",
+    "file": "stills/emerald-veil.jpg",
+    "thumb": "thumbs/emerald-veil.jpg",
+    "width": 2880,
+    "height": 1800,
+    "creator": "Wallpaper Studio",
+    "created": "9/10/26"
+  },
+  {
     "id": "still-midnight-grid",
     "title": "Midnight Grid",
     "kind": "still",
