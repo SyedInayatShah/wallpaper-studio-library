@@ -22,6 +22,17 @@
     "created": "9/9/26"
   },
   {
+    "id": "still-dm",
+    "title": "Dm",
+    "kind": "still",
+    "file": "stills/dm.jpg",
+    "thumb": "thumbs/dm.jpg",
+    "width": 5640,
+    "height": 2160,
+    "creator": "SyedInayatShah",
+    "created": "9/10/26"
+  },
+  {
     "id": "still-dusk-peaks",
     "title": "Dusk Peaks",
     "kind": "still",
