@@ -22,26 +22,15 @@
     "created": "9/9/26"
   },
   {
-    "id": "still-dusk-peaks",
-    "title": "Dusk Peaks",
+    "id": "still-dune-sea",
+    "title": "Dune Sea",
     "kind": "still",
-    "file": "stills/dusk-peaks.jpg",
-    "thumb": "thumbs/dusk-peaks.jpg",
-    "width": 2880,
-    "height": 1800,
+    "file": "stills/dune-sea.jpg",
+    "thumb": "thumbs/dune-sea.jpg",
+    "width": 3840,
+    "height": 2400,
     "creator": "Wallpaper Studio",
-    "created": "9/9/26"
-  },
-  {
-    "id": "still-ember-waves",
-    "title": "Ember Waves",
-    "kind": "still",
-    "file": "stills/ember-waves.jpg",
-    "thumb": "thumbs/ember-waves.jpg",
-    "width": 2880,
-    "height": 1800,
-    "creator": "Wallpaper Studio",
-    "created": "9/9/26"
+    "created": "9/21/26"
   },
   {
     "id": "still-emerald-veil",
@@ -55,15 +44,26 @@
     "created": "9/10/26"
   },
   {
-    "id": "still-midnight-grid",
-    "title": "Midnight Grid",
+    "id": "still-neon-horizon",
+    "title": "Neon Horizon",
     "kind": "still",
-    "file": "stills/midnight-grid.jpg",
-    "thumb": "thumbs/midnight-grid.jpg",
-    "width": 2880,
-    "height": 1800,
+    "file": "stills/neon-horizon.jpg",
+    "thumb": "thumbs/neon-horizon.jpg",
+    "width": 3840,
+    "height": 2400,
     "creator": "Wallpaper Studio",
-    "created": "9/9/26"
+    "created": "9/21/26"
+  },
+  {
+    "id": "still-pine-ridge-dusk",
+    "title": "Pine Ridge Dusk",
+    "kind": "still",
+    "file": "stills/pine-ridge-dusk.jpg",
+    "thumb": "thumbs/pine-ridge-dusk.jpg",
+    "width": 3840,
+    "height": 2400,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
   },
   {
     "id": "still-soft-fog",
@@ -108,5 +108,38 @@
     "height": 1200,
     "creator": "Wallpaper Studio",
     "created": "9/9/26"
+  },
+  {
+    "id": "dynamic-dune-sea",
+    "title": "Dune Sea",
+    "kind": "dynamic",
+    "file": "dynamic/dune-sea.metal",
+    "thumb": "thumbs/dune-sea.jpg",
+    "width": 0,
+    "height": 0,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
+  },
+  {
+    "id": "dynamic-neon-horizon",
+    "title": "Neon Horizon",
+    "kind": "dynamic",
+    "file": "dynamic/neon-horizon.metal",
+    "thumb": "thumbs/neon-horizon.jpg",
+    "width": 0,
+    "height": 0,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
+  },
+  {
+    "id": "dynamic-pine-ridge-dusk",
+    "title": "Pine Ridge Dusk",
+    "kind": "dynamic",
+    "file": "dynamic/pine-ridge-dusk.metal",
+    "thumb": "thumbs/pine-ridge-dusk.jpg",
+    "width": 0,
+    "height": 0,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
   }
 ]
