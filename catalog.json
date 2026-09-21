@@ -110,36 +110,21 @@
     "created": "9/9/26"
   },
   {
-    "id": "dynamic-dune-sea",
-    "title": "Dune Sea",
+    "id": "dynamic-hidden-peak",
+    "title": "Hidden Peak",
     "kind": "dynamic",
-    "file": "dynamic/dune-sea.metal",
-    "thumb": "thumbs/dune-sea.jpg",
+    "file": "dynamic/hidden-peak.metal",
+    "thumb": "thumbs/hidden-peak.jpg",
     "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/21/26"
+    "height": 0
   },
   {
-    "id": "dynamic-neon-horizon",
-    "title": "Neon Horizon",
+    "id": "dynamic-living-valley",
+    "title": "Living Valley",
     "kind": "dynamic",
-    "file": "dynamic/neon-horizon.metal",
-    "thumb": "thumbs/neon-horizon.jpg",
+    "file": "dynamic/living-valley.metal",
+    "thumb": "thumbs/living-valley.jpg",
     "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/21/26"
-  },
-  {
-    "id": "dynamic-pine-ridge-dusk",
-    "title": "Pine Ridge Dusk",
-    "kind": "dynamic",
-    "file": "dynamic/pine-ridge-dusk.metal",
-    "thumb": "thumbs/pine-ridge-dusk.jpg",
-    "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/21/26"
+    "height": 0
   }
 ]

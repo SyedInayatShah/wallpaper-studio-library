@@ -23,30 +23,33 @@ constant float CS_DEG   = 0.017453292519943295;
 constant float CS_RE    = 6371.0;   // earth radius (km)
 constant float CS_CAMH  = 3.30;     // camera altitude (km)
 constant float CS_TOP   = 2.30;     // deck base-top altitude (km) — domes rise above it
-constant float CS_MAXT  = 3.02;     // upper bound of cloud tops (incl. detail)
+constant float CS_MAXT  = 3.28;     // upper bound of cloud tops (incl. detail)
 constant float CS_SIG   = 60.0;     // extinction in cloud core (1/km)
 constant float CS_PITCH = -5.0;     // camera pitch (deg)
 constant float CS_VFOV  = 38.0;
-constant float CS_SUNEL = 3.0;      // sun elevation (deg)
-constant float CS_SUNAZ = 16.0;     // sun azimuth, deg right of view axis
-constant float CS_MIE   = 0.8;
-constant float CS_EXPO  = 0.42;
+constant float CS_SUNEL = 1.6;      // sun elevation (deg)
+constant float CS_SUNAZ = 11.0;     // sun azimuth, deg right of view axis
+constant float CS_MIE   = 0.55;
+constant float CS_EXPO  = 0.475;
 constant float CS_BASE  = 1.5;      // terrain base altitude (hidden under deck)
 constant float CS_HAZE  = 0.08;     // haze extinction at deck top (1/km)
 constant float CS_HAZEH = 0.18;     // haze scale height (km)
 
 // massifs: (x, z, summit altitude, radius) and (orientation, aspect, seed, crest freq)
-constant float4 CS_PK[4] = {
-    float4(-3.6,  -9.0, 4.00, 2.6),
-    float4( 5.6, -17.0, 3.95, 3.2),
-    float4(-12.5, -34.0, 3.65, 4.4),
-    float4( 16.0, -40.0, 3.60, 4.0)
+#define CS_NPK 5
+constant float4 CS_PK[CS_NPK] = {
+    float4( -2.6, -10.0, 4.58, 2.75),  // hero summit
+    float4( -0.9, -12.6, 3.82, 2.25),  // shoulder summit on the ridge toward the sun
+    float4( 11.5, -33.0, 4.02, 3.40),  // right mid-distance
+    float4(-19.0, -50.0, 3.66, 3.80),  // far left whisper
+    float4( 25.0, -64.0, 3.80, 4.60)   // far right whisper
 };
-constant float4 CS_PK2[4] = {
-    float4( 0.55, 0.50, 1.0, 0.55),
-    float4(-0.40, 0.55, 2.0, 0.45),
-    float4( 0.25, 0.45, 3.0, 0.40),
-    float4( 0.9, 0.5, 4.0, 0.42)
+constant float4 CS_PK2[CS_NPK] = {
+    float4( 0.34, 0.54, 1.0, 0.62),
+    float4( 0.90, 0.55, 5.0, 0.62),
+    float4(-0.45, 0.52, 2.0, 0.40),
+    float4( 0.30, 0.45, 3.0, 0.40),
+    float4( 0.95, 0.50, 4.0, 0.36)
 };
 
 // ------------------------------------------------------------ helpers
@@ -76,13 +79,31 @@ inline float3 cs_sunTrans(float altKm, float3 sd) {
 }
 
 // sky radiance with a weak "high sun" term standing in for multiple scattering
+inline float3 cs_ozone(float3 rd) {
+    float ch = 1.0 / (max(rd.y, 0.0) + 0.16);
+    return exp(-float3(0.45, 1.00, 0.05) * 0.048 * ch);
+}
 inline float3 cs_sky(float3 rd, float3 sunDir, float3 sunHi, float altM) {
     float3 a = ws_atmosphere(rd, sunDir, 22.0, 0.76, CS_MIE, altM);
     float3 b = ws_atmosphereFast(rd, sunHi, 22.0, 0.76, altM);
-    return a + 0.6 * b;
+    return (a + 0.46 * b) * cs_ozone(rd);
 }
 
 inline float cs_billow(float2 p) { return 1.0 - abs(gnoise(p)); }
+
+// proximity to a massif in [0,1] — drives orographic lift, convection and mist
+inline float cs_oro(float2 xz) {
+    float m = 0.0;
+    for (int i = 0; i < CS_NPK; i++) {
+        float4 P = CS_PK[i];
+        float2 d = xz - P.xy;
+        float r = length(d) / (P.w * 1.35);
+        if (r > 1.0) continue;
+        float f = 1.0 - r;
+        m = max(m, f * f * smoothstep(0.02, 0.45, f));
+    }
+    return m;
+}
 
 // ------------------------------------------------------------ cloud deck
 // LOD fade for a feature of wavelength lam (km) at pixel footprint fp (km)
@@ -94,10 +115,14 @@ inline float cs_top(float2 xz, float fp) {
     float h = CS_TOP;
     // macro swells and broad valleys
     h += 0.14 * fbm(q * 0.038 + float2(3.1, 7.7), 3);
+    h += 0.17 * gnoise(q * 0.0155 + float2(41.0, 13.0));   // very broad swells
     float vall = smoothstep(0.15, 0.65, gnoise(q * 0.055 + float2(17.3, 4.1)));
-    h -= 0.22 * vall;
+    h -= 0.32 * vall;
+    float om = cs_oro(q);
+    h += 0.095 * om * (0.12 + 1.75 * gnoise(q * 0.80 + float2(21.0, 5.0)));
     // convection mask: patches of vigorous cumulus vs flatter stratus
     float conv = smoothstep(-0.45, 0.5, gnoise(q * 0.085 + float2(9.2, 1.4)));
+    conv = saturate(conv + 0.55 * om);   // forced lift boils up against the massifs
     // warped domain for the cells
     float2 w = 0.7 * float2(gnoise(q * 0.23 + 1.7), gnoise(q * 0.23 + float2(8.3, 2.9)));
     float2 qw = q + w;
@@ -105,7 +130,8 @@ inline float cs_top(float2 xz, float fp) {
     float l1 = cs_lod(1.5, fp);
     if (l1 > 0.0) {
         float2 c1 = worley(qw * 0.68 + 2.3);
-        float d1 = sqrt(saturate(1.0 - c1.x * c1.x * 1.05));
+        float f1 = c1.x - 0.085 * (1.0 - smoothstep(0.0, 0.17, c1.y - c1.x));
+        float d1 = sqrt(saturate(1.0 - f1 * f1 * 1.05));
         h += (0.09 + 0.20 * conv) * d1 * l1;
     } else {
         h += (0.09 + 0.20 * conv) * 0.55;
@@ -113,7 +139,8 @@ inline float cs_top(float2 xz, float fp) {
     float l2 = cs_lod(0.6, fp);
     if (l2 > 0.0) {
         float2 c2 = worley(qw * 1.75 + 5.1);
-        float d2 = sqrt(saturate(1.0 - c2.x * c2.x * 1.1));
+        float f2 = c2.x - 0.075 * (1.0 - smoothstep(0.0, 0.15, c2.y - c2.x));
+        float d2 = sqrt(saturate(1.0 - f2 * f2 * 1.1));
         h += (0.04 + 0.08 * conv) * d2 * l2;
     } else {
         h += (0.04 + 0.08 * conv) * 0.5;
@@ -125,15 +152,21 @@ inline float cs_top(float2 xz, float fp) {
     if (l4 > 0.0) h += 0.035 * (cs_billow(qw * 3.8 + 9.2) - 0.6) * l4;
     float l5 = cs_lod(0.11, fp);
     if (l5 > 0.0) h += 0.016 * (cs_billow(qw * 9.5 + 1.3) - 0.6) * l5;
+    float l6 = cs_lod(0.045, fp);
+    if (l6 > 0.0) h += 0.0072 * (cs_billow(qw * 23.0 + 6.7) - 0.6) * l6;
+    float l7 = cs_lod(0.018, fp);
+    if (l7 > 0.0) h += 0.0032 * (cs_billow(qw * 57.0 + 2.2) - 0.6) * l7;
     return h;
 }
 
 // smooth large-scale top (for valley occlusion and the haze layer)
 inline float cs_topSmooth(float2 xz) {
     float h = CS_TOP + 0.14 * fbm(xz * 0.038 + float2(3.1, 7.7), 3);
+    h += 0.17 * gnoise(xz * 0.0155 + float2(41.0, 13.0));
     float vall = smoothstep(0.15, 0.65, gnoise(xz * 0.055 + float2(17.3, 4.1)));
     float conv = smoothstep(-0.45, 0.5, gnoise(xz * 0.085 + float2(9.2, 1.4)));
-    h -= 0.22 * vall;
+    h -= 0.32 * vall;
+    h += 0.062 * cs_oro(xz);
     h += (0.09 + 0.20 * conv) * 0.6 + (0.04 + 0.08 * conv) * 0.5;
     return h;
 }
@@ -142,7 +175,7 @@ inline float cs_topSmooth(float2 xz) {
 inline float cs_detail(float3 p, float fp) {
     float3 q = p * 8.0;
     float n = 0.0, a = 0.5, nrm = 0.0, freq = 8.0;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         float fade = cs_lod(1.0 / freq, fp);
         if (fade <= 0.0) break;
         n += a * fade * (1.0 - 2.0 * abs(gnoise(q)));
@@ -162,7 +195,7 @@ inline float cs_smax(float a, float b, float k) {
 
 inline float cs_peakAlt(float2 xz, int oct) {
     float best = CS_BASE;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < CS_NPK; i++) {
         float4 P = CS_PK[i];
         float4 Q = CS_PK2[i];
         float2 d = xz - P.xy;
@@ -172,16 +205,20 @@ inline float cs_peakAlt(float2 xz, int oct) {
         float ca = cos(Q.x), sa = sin(Q.x);
         float2 e = float2(ca * d.x + sa * d.y, -sa * d.x + ca * d.y) / float2(R, R * Q.y);
         // warp the massif outline
-        float2 wv = 0.22 * float2(fbm(xz * 0.4 + fi * 11.0, 3), fbm(xz * 0.4 + fi * 5.0 + 7.0, 3));
-        float ee = length(e + wv);
-        float shape = pow(saturate(1.0 - ee), 1.45);
+        float2 wv = 0.30 * float2(fbm(xz * 0.34 + fi * 11.0, 4), fbm(xz * 0.34 + fi * 5.0 + 7.0, 4));
+        float2 es = e + wv;
+        es.x *= mix(1.20, 0.74, smoothstep(-0.30, 0.30, es.x));
+        float ee = length(es);
+        float shape = pow(saturate(1.0 - ee), 1.15);
         // crest skeleton: ridged noise gives aretes and several summits
         float crest = ridged(xz * Q.w + fi * 3.7, oct);
         float relief = P.z - CS_BASE;
-        float hgt = CS_BASE + relief * shape * (0.42 + 0.58 * crest);
+        float spine = exp(-2.6 * pow(abs(e.y * 1.7 + 0.42 * sin(e.x * 2.3 + fi)), 1.4));
+        float hgt = CS_BASE + relief * shape * (0.46 + 0.42 * crest + 0.16 * spine);
         // secondary ridges / gullies
         float m = smoothstep(0.05, 0.5, shape);
         hgt += relief * m * 0.06 * (ridged(xz * 1.7 + fi * 9.1, max(oct - 2, 2)) - 0.5);
+        if (oct >= 6) hgt += relief * m * 0.022 * (ridged(xz * 6.3 + fi * 3.0, 2) - 0.5);
         best = cs_smax(best, hgt, 0.05);
     }
     return best;
@@ -200,7 +237,7 @@ inline float3 cs_terrN(float2 xz, float e, int oct) {
 // ray vs union of massif bounding cylinders -> [t0, t1]; t1 < t0 = miss
 inline float2 cs_peakRange(float3 ro, float3 rd) {
     float t0 = 1e9, t1 = -1e9;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < CS_NPK; i++) {
         float4 P = CS_PK[i];
         float2 oc = ro.xz - P.xy;
         float a = dot(rd.xz, rd.xz);
@@ -223,18 +260,21 @@ inline float cs_terrShadow(float3 p, float3 sd, int oct, float soft) {
     float2 pr = cs_peakRange(p, sd);
     if (pr.y < pr.x) return 1.0;
     float res = 1.0;
+    float tHit = 0.0;
     float t = max(pr.x, 0.01);
     for (int i = 0; i < 30; i++) {
         if (t > pr.y) break;
         float3 q = p + sd * t;
-        if (q.y > 4.3) break;
+        if (q.y > 4.4) break;
         float h = cs_terrH(q.xz, oct);
         float d = q.y - h;
-        res = min(res, saturate(d / (soft * t + 0.002)));
+        float r = saturate(d / (soft * t + 0.002));
+        if (r < res) { res = r; tHit = t; }
         if (res < 0.01) break;
         t += clamp(d * 0.7, 0.01, 0.4);
     }
-    return res;
+    // scattered light fills long shadows in: they fade over tens of km
+    return mix(1.0, res, exp(-tHit * 0.080));
 }
 
 // ------------------------------------------------------------ scene
@@ -255,10 +295,13 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
     float3 sunE   = 22.0 * cs_sunTrans(CS_TOP + 0.35, sunDir);   // at deck level
     float3 sunEhi = 22.0 * cs_sunTrans(3.6, sunDir);             // at the summits
     // ambient sky irradiance (hemisphere approx.)
-    float3 skyZen = ws_atmosphereFast(float3(0, 1, 0), sunDir, 22.0, 0.76, altM) + 0.6 * ws_atmosphereFast(float3(0, 1, 0), sunHi, 22.0, 0.76, altM);
-    float3 skyS   = ws_atmosphereFast(normalize(float3(sunDir.x, 0.35, sunDir.z)), sunDir, 22.0, 0.76, altM) + 0.6 * ws_atmosphereFast(normalize(float3(sunDir.x, 0.35, sunDir.z)), sunHi, 22.0, 0.76, altM);
-    float3 skyA   = ws_atmosphereFast(normalize(float3(-sunDir.x, 0.35, -sunDir.z)), sunDir, 22.0, 0.76, altM) + 0.6 * ws_atmosphereFast(normalize(float3(-sunDir.x, 0.35, -sunDir.z)), sunHi, 22.0, 0.76, altM);
-    float3 skyAmb = PI * (0.45 * skyZen + 0.3 * skyS + 0.25 * skyA) * 1.1;
+    float3 dZ = float3(0, 1, 0);
+    float3 dS = normalize(float3(sunDir.x, 0.35, sunDir.z));
+    float3 dA = normalize(float3(-sunDir.x, 0.35, -sunDir.z));
+    float3 skyZen = (ws_atmosphereFast(dZ, sunDir, 22.0, 0.76, altM) + 0.46 * ws_atmosphereFast(dZ, sunHi, 22.0, 0.76, altM)) * cs_ozone(dZ);
+    float3 skyS   = (ws_atmosphereFast(dS, sunDir, 22.0, 0.76, altM) + 0.46 * ws_atmosphereFast(dS, sunHi, 22.0, 0.76, altM)) * cs_ozone(dS);
+    float3 skyA   = (ws_atmosphereFast(dA, sunDir, 22.0, 0.76, altM) + 0.46 * ws_atmosphereFast(dA, sunHi, 22.0, 0.76, altM)) * cs_ozone(dA);
+    float3 skyAmb = PI * (0.62 * skyZen + 0.14 * skyS + 0.24 * skyA) * 1.85;
 
     // horizon sky in this azimuth (aerial-perspective in-scatter)
     float3 rdH = normalize(float3(rd.x, max(rd.y, 0.006), rd.z));
@@ -270,11 +313,11 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
     float tTer = 1e9;
     float3 terCol = float3(0.0);
     float2 pr = cs_peakRange(ro, rd);
-    if (pr.y > pr.x && rd.y < 0.12) {
+    if (pr.y > pr.x && rd.y < 0.22) {
         float t = pr.x;
         float tPrev = t;
         bool hit = false;
-        for (int i = 0; i < 220; i++) {
+        for (int i = 0; i < 260; i++) {
             if (t > pr.y) break;
             float3 p = ro + rd * t;
             if (p.y < 2.0 - dot(p.xz, p.xz) * (0.5 / CS_RE)) break;   // under the deck: invisible
@@ -282,7 +325,7 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
             float d = p.y - h;
             if (d < 0.0) {
                 float a = tPrev, b = t;
-                for (int k = 0; k < 6; k++) {
+                for (int k = 0; k < 9; k++) {
                     float m = 0.5 * (a + b);
                     float3 q = ro + rd * m;
                     if (q.y - cs_terrH(q.xz, 6) < 0.0) b = m; else a = m;
@@ -292,7 +335,7 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
                 break;
             }
             tPrev = t;
-            t += max(d * 0.4, 0.0015 + t * pixAng * 0.6);
+            t += max(d * 0.28, 0.0010 + t * pixAng * 0.45);
         }
         if (hit) {
             tTer = t;
@@ -303,12 +346,12 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
             // materials
             float nz = fbm(p.xz * 5.0, 4);
             float strata = gnoise(float2(alt * 30.0 + nz * 2.5, p.x * 0.4 + p.z * 0.2));
-            float3 rock = mix(float3(0.060, 0.056, 0.052), float3(0.15, 0.13, 0.11),
+            float3 rock = mix(float3(0.075, 0.070, 0.066), float3(0.19, 0.165, 0.140),
                               saturate(0.45 + 0.6 * nz + 0.3 * strata));
             rock = mix(rock, float3(0.11, 0.09, 0.075), 0.3 * saturate(strata));
-            float snowMask = smoothstep(0.55, 0.78, n.y + 0.2 * nz + 0.08 * (alt - 3.2));
-            snowMask *= smoothstep(2.45, 2.75, alt);
-            float3 alb = mix(rock, float3(0.80, 0.83, 0.88), snowMask);
+            float snowMask = smoothstep(0.42, 0.72, n.y + 0.22 * nz + 0.30 * (alt - 3.3));
+            snowMask *= smoothstep(2.55, 3.05, alt);
+            float3 alb = mix(rock, float3(0.82, 0.85, 0.90), snowMask);
             float sh = cs_terrShadow(p + n * 0.004, sunDir, 5, 0.03);
             float dif = max(dot(n, sunDir), 0.0);
             // ambient: sky from above, bright sunlit deck from below
@@ -319,10 +362,11 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
             float3 col = alb * (sunEhi * dif * sh / PI + amb * occ);
             // snow sheen / sun glint toward the sun
             float3 hv = normalize(sunDir - rd);
-            col += snowMask * sunEhi * sh * 0.05 * pow(max(dot(n, hv), 0.0), 24.0);
-            // rock rim light (backlit edges)
-            float rim = pow(saturate(1.0 + dot(n, rd)), 3.0);
-            col += rock * sunEhi * sh * 0.06 * rim * saturate(dot(n, sunDir) + 0.4);
+            col += snowMask * sunEhi * sh * 0.06 * pow(max(dot(n, hv), 0.0), 20.0);
+            // backlit rim: grazing sun catches the ridge edges
+            float rim = pow(saturate(1.0 + dot(n, rd)), 2.4);
+            float graze = pow(saturate(dot(n, sunDir) + 0.55), 2.0);
+            col += mix(rock, float3(0.34, 0.30, 0.27), 0.65) * sunEhi * sh * 0.30 * rim * graze;
             terCol = col;
         }
     }
@@ -351,7 +395,7 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
             float t = t0;
             float terSh = -1.0;
             bool first = true;
-            for (int i = 0; i < 200; i++) {
+            for (int i = 0; i < 250; i++) {
                 if (t > t1 || cloudT < 0.004) break;
                 float3 p = ro + rd * t;
                 float alt = cs_alt(p);
@@ -361,14 +405,18 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
                 float stepIn = 0.005 + t * 0.004;
                 if (h < -0.07) {
                     // empty air above the deck: big steps; integrate the haze layer analytically
-                    float dt = max((-h - 0.06) * 0.9 / (abs(rd.y) + 0.8), 0.02 + t * 0.03);
+                    float dt = max((-h - 0.06) * 0.9 / (abs(rd.y) + 1.25), 0.02 + t * 0.017);
                     dt = min(dt, t1 - t + 1e-3);
                     float topS = cs_topSmooth(p.xz);
-                    float hz = CS_HAZE * exp(-max(alt - topS, 0.0) / CS_HAZEH);
+                    float oroP = cs_oro(p.xz);
+                    float mistM = oroP * oroP * oroP * max(0.0, 0.30 + 1.40 * gnoise(p.xz * 0.75 + 13.0));
+                    float hz = CS_HAZE * (1.0 + 2.4 * mistM) * exp(-max(alt - topS, 0.0) / (CS_HAZEH * (1.0 + 0.9 * mistM)));
                     float od = hz * dt;
                     if (od > 1e-4) {
+                        if (terSh < 0.0 && hz > 0.004) terSh = cs_terrShadow(p, sunDir, 4, 0.055);
+                        float sh = max(terSh, 0.0);
                         float Th = exp(-od);
-                        float3 S = sunE * hazePhase * 0.9 + skyAmb / PI * 0.35;
+                        float3 S = sunE * hazePhase * 0.9 * mix(1.0, (terSh < 0.0 ? 1.0 : sh), saturate(1.0 - t / 26.0)) + skyAmb / PI * 0.35;
                         cloudL += cloudT * S * (1.0 - Th);
                         tW += cloudT * (1.0 - Th) * (t + 0.5 * dt); wSum += cloudT * (1.0 - Th);
                         cloudT *= Th;
@@ -380,19 +428,21 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
                 if (first) { first = false; t += dt * jit; p = ro + rd * t; alt = cs_alt(p); h = top - alt; }
                 float det = cs_detail(p, fp);
                 float dd = h + 0.035 * det;
-                float den = CS_SIG * smoothstep(0.0, 0.025 + fp * 0.5, dd);
+                float oroP = cs_oro(p.xz);
+                float den = CS_SIG * smoothstep(0.0, 0.025 + fp * 0.5 + 0.022 * oroP, dd);
                 // haze inside the fine-step zone too
                 float topS = cs_topSmooth(p.xz);
-                float hz = CS_HAZE * exp(-max(alt - topS, 0.0) / CS_HAZEH);
+                float mistM = oroP * oroP * oroP * max(0.0, 0.30 + 1.40 * gnoise(p.xz * 0.75 + 13.0));
+                float hz = CS_HAZE * (1.0 + 2.4 * mistM) * exp(-max(alt - topS, 0.0) / (CS_HAZEH * (1.0 + 0.9 * mistM)));
                 if (den > 0.02) {
-                    if (terSh < 0.0) terSh = cs_terrShadow(p, sunDir, 4, 0.02);
+                    if (terSh < 0.0) terSh = cs_terrShadow(p, sunDir, 4, 0.055);
                     // light march toward the sun
                     float od = 0.0;
                     float ls = 0.014, lt = 0.0;
                     for (int j = 0; j < 6; j++) {
                         float3 q = p + sunDir * (lt + ls * 0.5);
                         float qa = cs_alt(q);
-                        float qt = cs_top(q.xz, max(fp, lt * 0.08));
+                        float qt = cs_top(q.xz, max(fp, max(0.013, lt * 0.08)));
                         float qh = qt - qa;
                         if (j < 2) qh += 0.035 * cs_detail(q, fp * 2.0);
                         od += CS_SIG * smoothstep(0.0, 0.025, qh) * ls;
@@ -408,11 +458,12 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
                     float powder = 1.0 - 0.6 * exp(-max(dd, 0.0) * 35.0);
                     Ls *= sunE * terSh * mix(1.0, powder, 0.7);
                     // ambient: sky from above, occluded with depth / in valleys
-                    float valley = saturate((topS - top) * 2.5);
-                    float ao = exp(-max(dd, 0.0) * 5.0) * (1.0 - 0.6 * valley);
-                    float3 La = skyAmb / PI * (0.3 + 0.7 * ao);
+                    float valley = saturate((topS - top) * 3.0);
+                    float ao = exp(-max(dd, 0.0) * 8.0) * (1.0 - 0.80 * valley);
+                    float3 ambCol = mix(skyZen * 1.30, skyAmb / PI, ao * ao);
+                    float3 La = ambCol * (0.32 + 0.68 * ao);
                     // faint warm bounce from neighbouring sunlit tops
-                    La += sunE * 0.02 * terSh * (1.0 - 0.5 * valley);
+                    La += sunE * 0.016 * mix(0.40, 1.0, terSh) * (1.0 - 0.55 * valley);
                     float3 S = (Ls + La) * 0.99;
                     float Ts = exp(-den * dt);
                     float wgt = cloudT * (1.0 - Ts);
@@ -420,8 +471,9 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
                     tW += wgt * t; wSum += wgt;
                     cloudT *= Ts;
                 } else if (hz > 1e-3) {
+                    if (terSh < 0.0) terSh = cs_terrShadow(p, sunDir, 4, 0.055);
                     float Th = exp(-hz * dt);
-                    float3 S = sunE * hazePhase * 0.9 + skyAmb / PI * 0.35;
+                    float3 S = sunE * hazePhase * 0.9 * mix(1.0, max(terSh, 0.0), saturate(1.0 - t / 26.0)) + skyAmb / PI * 0.35;
                     cloudL += cloudT * S * (1.0 - Th);
                     tW += cloudT * (1.0 - Th) * t; wSum += cloudT * (1.0 - Th);
                     cloudT *= Th;
@@ -438,7 +490,7 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
     float3 beta = betaR + betaM;
 
     float3 sky = cs_sky(rd, sunDir, sunHi, altM);
-    float3 sun = ws_sunDisk(rd, sunDir, 0.27, sunEhi * 6000.0);
+    float3 sun = ws_sunDisk(rd, sunDir, 0.30, sunEhi * 380.0);
     float3 bg = sky + sun;
 
     float3 col;
@@ -456,10 +508,12 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
     }
     // veiling glare around the sun
     float ang = acos(clamp(mu, -1.0, 1.0));
-    col += sunEhi * (0.45 * exp(-ang * 90.0) + 0.08 * exp(-ang * 22.0) + 0.016 * exp(-ang * 5.0));
+    col += sunEhi * (1.70 * exp(-ang * 180.0) + 0.80 * exp(-ang * 72.0) + 0.090 * exp(-ang * 20.0) + 0.008 * exp(-ang * 6.5));
 
     col *= CS_EXPO;
+    col *= ws_vignette(fragCoord / ctx.res, 0.22);
     col = ws_acesFitted(col);
+    col = ws_saturate(col, 1.03);
     col += 0.004 * ws_grain(fragCoord, ctx.t);
     return saturate(col);
 }
