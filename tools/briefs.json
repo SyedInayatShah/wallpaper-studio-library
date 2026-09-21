@@ -1,0 +1,158 @@
+{
+ "event-horizon": {
+  "title": "Event Horizon",
+  "brief": "An Interstellar-grade black hole: a supermassive black hole with a blazing, relativistically Doppler-beamed accretion disk (one side brighter and bluer-white, the other dimmer and redder), the far side of the disk gravitationally lensed up and over the shadow into the classic halo, a thin photon ring, turbulent streaky disk texture with fine filaments orbiting (disk material rotating an integer number of turns per loop so it is seamless), and a rich star field distorted/lensed around the hole. Deep black space, cinematic, awe-inspiring, physically motivated (raymarched curved light paths)."
+ },
+ "sakura-drift": {
+  "title": "Sakura Drift",
+  "brief": "Spring cherry blossom: a close foreground branch of pink-white sakura blossoms in sharp focus on one side, more blossoming branches softly out of focus behind (lush bokeh), a pale blue sky with soft sunlight, and petals drifting and tumbling through the frame on gentle breezes with realistic depth of field and rotation (petal paths loop-safe with integer cycles); faint silhouette of a traditional pagoda far away in the haze optional. Delicate, luminous, photographic."
+ },
+ "living-valley": {
+  "title": "Living Valley",
+  "brief": "The time-of-day showpiece: a real-time wallpaper that follows the user's actual clock. A tranquil alpine valley (the owner loves trees): a calm lake in the middle distance, dense conifer forest on the shores and slopes, rocky snow-capped peaks behind, the camera facing WEST so sunsets happen in view (use ws_rotY(ctx.sunDir, -PI/2)). Physically based sky from ctx.sunDir (ws_atmosphereFast) so sunrise, bright midday, golden hour, a glowing sunset, blue-hour twilight and night all come out naturally, with lighting, shadows and water reflections that change accordingly (warm alpenglow on the peaks at sunset). Things happen at different times: soft morning mist over the lake roughly 5–9 am (from ctx.dayTime), drifting clouds all day, a small wooden cabin on the shore whose windows glow warm after sunset (reflected in the lake), and at night a star-filled sky with a faint Milky Way band plus the moon at its real position and phase (ctx.moonDir, ctx.moonIllum) lighting the snow and water; subtle fireflies near the shore on summer nights (ctx.dayOfYear roughly 140–250). Gentle continuous motion from ctx.time: cloud drift, lake ripples and reflections shimmering softly, mist breathing. Must look beautiful and realistic at EVERY time of day while staying within the real-time budget (≤ 8 ms/frame bench, no shimmer at 1 sample per pixel)."
+ },
+ "winter-hush": {
+  "title": "Winter Hush",
+  "brief": "(The owner loves trees.) A silent snowy spruce forest at blue hour: snow-laden spruce trees in layers receding into soft cold mist, deep undisturbed snow with subtle sparkle, a small cabin in the mid-distance with warm glowing windows and a wisp of chimney smoke, and gentle snowfall — flakes of varied size with realistic depth of field (near flakes big and soft/bokeh, far ones tiny), drifting and swaying as they fall, all loop-safe. Cold blue ambience vs. warm window light. Peaceful and photographic."
+ },
+ "lighthouse-watch": {
+  "title": "Lighthouse Watch",
+  "brief": "OWNER FEEDBACK ON THE FIRST DRAFT (highest priority): it must be NIGHT and DARK (not blue-hour dusk) — a deep night sky with stars and a thin moon or overcast glow, the scene mostly in darkness; the LIGHTHOUSE MUST BE MUCH TALLER (a tall slender tower dominating its headland, roughly 2–3x the previous height relative to the cliff) and the ROTATING LIGHT BEAM MUST BE CLEARLY VISIBLE — a bright volumetric shaft sweeping through misty night air, catching sea mist and drizzle, with a strong flare when it swings toward the camera; the beam is the star of the wallpaper. The WATER looked like a game-engine liquid and moved TOO FAST: make it a real night ocean — slow, heavy, long-period swells (periods of many seconds), fine wind texture, realistic dark water with subtle moonlit/beam-lit highlights and white foam only where waves meet the rocks; nothing glossy, plastic or jittery. The loop is 20 SECONDS (600 frames) so the motion can be slow and calm; the beam rotates slowly (1–2 turns per loop). Keep: rugged rocky headland, keeper's cottage with warm lit windows, scattered moving cloud. Moody, cinematic, photographic."
+ },
+ "campfire-night": {
+  "title": "Campfire Night",
+  "brief": "(The owner loves forests.) A crackling campfire in a small clearing of a pine forest at night, camera low near the fire ring of stones: realistic volumetric flames (blackbody colours, turbulent loop-safe motion, tongues licking upward), glowing embers in the logs, sparks rising and drifting and fading (loop-safe), a thin smoke column catching the firelight, warm flickering light dancing on nearby tree trunks and the ground with correct falloff, cool blue moonlit forest beyond, stars visible through the canopy gap. Cozy, realistic, never harsh."
+ },
+ "koi-pond": {
+  "title": "Koi Pond",
+  "brief": "A tranquil Japanese koi pond seen from above (slightly angled): six to nine koi with realistic body shapes and patterns (kohaku red-white, sanke, ogon gold, black) gliding gracefully along smooth closed paths with undulating tails and fins (integer laps per loop, loop-safe), water with gentle ripples and soft surface reflections of an unseen sky and overhanging foliage, dappled sunlight caustics on the pond floor stones, floating lily pads and two or three pink lotus flowers, a few leaves drifting. Serene, lush, realistic."
+ },
+ "sunken-light": {
+  "title": "Sunken Light",
+  "brief": "Underwater in clear tropical shallows (~6 m), camera looking slightly upward-forward. Animated volumetric god rays from the surface swaying slowly; the wavy surface seen from below with a bright Snell's window; dancing caustic light networks on a rippled white-sand seafloor (worleyLoop / loop-safe caustics); optional rock/coral silhouettes; drifting suspended particles/plankton with depth-of-field bokeh near the camera; blue-teal depth fog with correct wavelength absorption (reds die first). Serene, luminous, realistic."
+ },
+ "cloud-sea": {
+  "title": "Cloud Sea",
+  "brief": "Above the clouds at sunrise, seen from a high summit (successor to the old soft minimal 'Soft Fog' — the calmest wallpaper of the set). A vast sea of volumetric cumulus/stratocumulus tops (raymarched density, Beer–Lambert + powder + forward-scattering silver linings) stretching to the horizon, with 2–3 snow-dusted rocky peaks piercing through at left/right mid-distance. Low sun just above the horizon; soft pastel sky (peach/rose near the sun, powder blue above) from ws_atmosphere at high altitude (altitude parameter ~3000–5000 m); luminous light on cloud tops, gentle shadows in cloud valleys. Soft, calm, luminous, realistic."
+ },
+ "moonlit-swell": {
+  "title": "Moonlit Swell",
+  "brief": "Open ocean at night under a full moon. Realistic animated waves: a sum of Gerstner/trochoidal waves whose motion is exactly periodic over the loop (each wave's phase advances an integer number of cycles per loop) plus loop-safe chop noise; a shimmering moon-glitter path from the moon down toward the viewer that sparkles as the waves move (without harsh pixel flicker); the moon with a halo and a soft moonlit cloud bank that drifts or evolves loop-safely; deep blue-black water with silvery highlights; faint stars. Hypnotic, calm, realistic."
+ },
+ "firefly-forest": {
+  "title": "Firefly Forest",
+  "brief": "(The owner loves the tree wallpaper.) Night in an old pine/fir forest; static camera at ground level looking into a clearing. Multiple layers of tall conifer trunks and silhouettes receding into moonlit blue-green fog (strong depth layering); cool moonlight shafts (volumetric god rays) slanting through gaps; low ground fog slowly drifting and curling (loop-safe noise); ferns/grass as dark silhouettes on the forest floor. 40–80 fireflies: warm yellow-green bioluminescent points with soft bloom, each drifting on its own smooth closed path (integer cycles per loop) and pulsing with a natural rhythm (fade in, glow, fade out, staggered phases); near ones slightly larger and bokeh-soft, far ones tiny. Calm, magical but realistic; no flicker."
+ },
+ "emerald-lake": {
+  "title": "Emerald Lake",
+  "brief": "Alpine glacial lake at early morning (Moraine Lake / Lago di Braies feel; keeps the emerald palette of the old 'Emerald Veil'). Raymarched jagged rocky peaks (ridged fBm) with snow held on gentler slopes (by normal & height) and rock strata detail, the peaks lit by low warm morning sun while the valley is still in cool shade; conifer forest shorelines on both sides (the owner loves trees); the lake a luminous emerald-turquoise glacial colour near shore deepening to teal, with a near-mirror reflection of peaks and sky gently broken by ripples; thin wisps of mist over the water; soft sky with a few lit clouds. Tranquil and realistic."
+ },
+ "golden-swell": {
+  "title": "Golden Swell",
+  "brief": "Photoreal open ocean at golden hour from a low camera ~1.5 m above the water. Physically based sky (ws_atmosphere) with the sun ~3–6° above the horizon, slightly off-center; a layer of broken altocumulus/stratocumulus lit gold/peach from below, blue-grey undersides away from the sun. Ocean: multi-octave choppy heightfield (long swell + wind chop, Gerstner + noise), correct Fresnel reflection of the sky, a glittering specular sun path of countless tiny glints, translucent turquoise subsurface light in wave crests facing the sun, subtle foam streaks. Horizon ~40–45% up the frame, perfectly straight. Must read as a real photograph."
+ },
+ "aurora-night": {
+  "title": "Aurora Night",
+  "brief": "Aurora borealis over a winter landscape. Tall aurora curtains with vertical ray structure (green 557 nm core, magenta/red upper fringes, subtle violet lower edge) folding and rippling slowly across a star-filled sky; the curtains sway, their folds travel, and rays shimmer — all loop-safe. Below: a snow-covered mountain range lit green by the aurora, a snowy shoreline with frosted spruce trees, and a still dark lake mirroring the aurora and stars with a faint ripple. Stars twinkle subtly. Cinematic and realistic (Iceland/Norway feel)."
+ },
+ "stellar-nursery": {
+  "title": "Stellar Nursery",
+  "brief": "Astrophotography-grade emission nebula (JWST 'Cosmic Cliffs' / Hubble 'Pillars' calibre). Volumetric raymarched gas with domain-warped fBm density: glowing ionized gas (H-alpha deep reds/magentas, OIII teal/cyan, some gold), sculpted cliffs/pillars of dark dust silhouetted in front with bright rim-lit, eroding edges; fine filamentary detail at all scales and strong 3D depth. A cluster of a few brilliant young blue-white stars with subtle diffraction spikes and glow; a deep rich star field (thousands of stars, realistic colour temperatures and magnitudes, optional faint background galaxies). Deep black background elsewhere. Calmer upper strip."
+ },
+ "neon-horizon": {
+  "title": "Neon Horizon",
+  "brief": "Premium cinematic synthwave (successor to the old flat 'Midnight Grid') — like a high-end 3D render, not flat vector. A vast glossy dark reflective floor with anti-aliased glowing neon grid lines (magenta/cyan) in perspective to the horizon; a huge retro sun with horizontal slit bands, soft bloom and glow, its reflection smeared on the glossy floor; layered silhouetted/wireframe mountains with rim glow; deep purple-to-magenta sky with stars and atmospheric haze near the horizon; volumetric glow; filmic grading, very faint grain. Polished, dimensional, moody but not garish; calm top strip."
+ },
+ "pine-ridge-dusk": {
+  "title": "Pine Ridge Dusk",
+  "brief": "FLAGSHIP — the owner's favorite. The old flat-vector version (purple dusk sky, a pale full moon, jagged layered ridges that looked like pine trees) was loved for its mood; make it breathtakingly real while keeping that soul and palette. A long-lens view across 5–7 receding mountain ridges blanketed in dense conifer forest at deep dusk / early blue hour. Individual spruce/fir silhouettes (narrow spires, irregular heights, layered branch tiers readable on the nearest ridge) line every ridgeline; valleys between ridges filled with soft pooled mist catching faint moonlight and residual twilight. Strong atmospheric perspective: each farther ridge lighter, cooler, lower contrast, dissolving into haze. Sky: physically plausible twilight — deep indigo/violet zenith, violet-lilac middle, a thin warm dusty-rose/amber afterglow near the horizon; a few faint stars high up. A large telephoto-looking full moon low and slightly off-center with subtle maria detail and a soft halo; faint moon glow on mist tops. Nearest ridge nearly silhouetted at the bottom with crisp tree tips. Calm top strip. Should feel like a real long-lens landscape photograph (Smoky Mountains / Pacific Northwest at dusk)."
+ },
+ "magma-flow": {
+  "title": "Magma Flow",
+  "brief": "(A fierce successor to the old 'Ember Glow'.) A volcanic lava field at night from a low angle. A river/sea of molten lava with a cooling black-grey crust broken into plates that slowly drift and grind (loop-safe flow), incandescent cracks between plates with blackbody colours (deep red → orange → yellow-white in the hottest seams), gentle glowing heat pulses; heat shimmer above; embers and sparks rising and drifting with glow (loop-safe); a dark smoky sky lit red-orange from below by the lava; optional distant volcano silhouette. Dramatic but not blinding (keep average brightness moderate)."
+ },
+ "dune-sea": {
+  "title": "Dune Sea",
+  "brief": "Hyper-real Sahara/Namib sand dunes at golden hour (keeps the warm ember palette of the old 'Ember Waves'). Raymarched heightfield: large sweeping dunes with razor-sharp crests and slip faces, graceful curves, ranges layered into the distance; fine wind ripples on windward slopes; long crisp shadows; warm apricot/orange sunlit sand vs cool violet-blue skylit shadows; subtle sand-grain micro-detail; distant dunes softened by warm haze; clean gradient sky from ws_atmosphere with a low side-light sun, optionally a faint crescent moon. Minimal, elegant, deeply realistic."
+ },
+ "rainy-window": {
+  "title": "Rainy Window",
+  "brief": "Rain on a window at night, looking out at an out-of-focus city. Background: rich bokeh of city lights (warm sodium orange, cool LED white/blue, a few neon pinks) as soft discs with realistic lens bokeh; mostly static with gentle life. Foreground glass: realistic water drops that refract (magnified, inverted, sharper) the blurred background; many small static droplets; larger drops sliding down in wiggly paths leaving thin trails of tiny droplets — all loop-safe (per-drop cycles with integer counts per loop). Slight condensation on the glass. Cozy and photographic (the famous 'Heartfelt' shader, but more realistic)."
+ },
+ "paper-strata": {
+  "title": "Paper Strata",
+  "brief": "STYLIZED PAPER-CUT ART: a landscape of mountains, hills, a river and a sun built from layered cut-paper shapes, each layer a slightly different tone of one harmonious palette (e.g. dusk blues to warm apricot), realistic paper texture, soft drop shadows between layers giving real physical depth, tiny paper trees and birds. Clean, tactile, gallery-poster quality; original design."
+ },
+ "autumn-creek": {
+  "title": "Autumn Creek",
+  "brief": "A forest creek in peak autumn, camera low at the water: clear water sliding over mossy rocks with a silky long-exposure feel, wet stones, fallen red/orange/yellow leaves on rocks and floating in eddies, backlit golden foliage overhead with sun rays through mist, deep shadow under the banks. Rich, warm, hyper-real macro-to-mid detail."
+ },
+ "skyline-blue-hour": {
+  "title": "Skyline Blue Hour",
+  "brief": "A dense modern city skyline across calm water at blue hour: hundreds of warm lit windows in varied towers (generic architecture, no real landmarks), a faint haze glow, cool blue sky fading to a warm horizon band, the whole skyline reflected in gently rippling water with light streaks, a bridge with moving-light streaks optional. Grand, calm, photographic."
+ },
+ "crystal-cavern": {
+  "title": "Crystal Cavern",
+  "brief": "FICTIONAL vast crystal cave: giant translucent crystals (blues, violets, a few amber) growing from walls and floor, lit from within and by a shaft of daylight from above, a still underground lake reflecting everything, wet stone, subsurface scattering in the crystals, dust motes in the light. Realistic materials — like a photograph of an impossible place."
+ },
+ "thunder-plains": {
+  "title": "Thunder Plains",
+  "brief": "LONG LOOP (15 s): a supercell thunderstorm over wide open grass plains at dusk — a towering sculpted cloud base with a rotating wall cloud, rain curtains, occasional cloud-to-ground lightning strikes (loop-safe random schedule, each with a bright flash that lights the whole cloud interior and the ground for a few frames, plus dimmer intra-cloud flickers), wind rippling through the grass, a distant road or fence for scale. Dramatic, realistic, storm-chaser photography feel."
+ },
+ "lantern-sky": {
+  "title": "Lantern Sky",
+  "brief": "LONG LOOP (15 s): a night sky filled with hundreds of glowing paper sky lanterns rising and drifting (a lantern festival), each a warm translucent glowing shape with a flame inside, varied sizes with depth of field, gently swaying as they climb (loop-safe: each lantern on an integer number of drift cycles, or continuously re-emitted from below with matching top exit), a dark treeline and a still lake reflecting the lights at the bottom, faint stars. Magical, photographic."
+ },
+ "liquid-chrome": {
+  "title": "Liquid Chrome",
+  "brief": "ABSTRACT 3D ART: flowing, folding liquid-metal forms (chrome with subtle iridescent thin-film colour shifts) frozen mid-motion, studio-style lighting with large soft reflections and crisp highlights, on a dark gradient backdrop; perfect reflections, depth of field. Premium, minimal, sculptural — like a high-end motion-design still."
+ },
+ "neon-alley-rain": {
+  "title": "Neon Alley Rain",
+  "brief": "A narrow rain-soaked alley in a dense Asian-style city at night: wet asphalt and puddles reflecting neon signs (pinks, cyans, oranges — abstract glyphs, no real brands or readable words), overhead tangles of cables, air-conditioner units and awnings, steam from a vent, a distant figure with an umbrella, lens bokeh from far lights, fine rain streaks. Cinematic, hyper-real, not garish."
+ },
+ "impossible-arches": {
+  "title": "Impossible Arches",
+  "brief": "SURREAL ARCHITECTURE: an original composition of monumental pastel-stone arches, stairs and colonnades in impossible or dreamlike arrangements (arches that connect at odd angles, a staircase into the sky, a doorway floating over still water), under a clear soft sky with long dramatic shadows and a lone sphere or tree for scale. Calm, mysterious, metaphysical; crisp geometry, realistic materials, painterly serenity. Must be original, not a copy of any known artwork."
+ },
+ "salt-mirror": {
+  "title": "Salt Mirror",
+  "brief": "A flooded salt flat at dusk (Uyuni feel): a thin sheet of water turning the ground into a perfect mirror, a dramatic sky of lit cumulus clouds reflected below, subtle hexagonal salt-crust ridges breaking the surface in the foreground, the horizon dissolving so sky and ground merge; a tiny distant figure or vehicle for scale optional. Surreal-feeling but strictly photographic."
+ },
+ "nebula-drift": {
+  "title": "Nebula Drift",
+  "brief": "LONG LOOP (20 s), very calm: slow parallax drift through a vast volumetric nebula (deep reds, teals, gold) with dark dust lanes, the gas evolving subtly (loop-safe noise), a dense star field with slight parallax and gentle twinkle, a bright central star cluster with soft glow. Astrophotography realism; barely-there motion that never visibly restarts."
+ },
+ "cyber-district": {
+  "title": "Cyber District",
+  "brief": "TIME-OF-DAY scene, FICTION, cyberpunk: a rain-slick megacity street canyon seen from a rooftop, towers with layered facades, elevated rails, billboards with abstract holographic glyphs (no readable words or real brands). By DAY it is a gritty, hazy, realistic city under a physically based sky (ctx.sunDir), sun glancing off wet surfaces; as the sun sets the neon and holograms come alive, and at NIGHT it is a full neon spectacle — magenta/cyan/orange signs reflecting in puddles, rain streaks, drifting steam, distant air traffic light trails, searchlights sweeping, windows lit in the towers. Continuous motion from ctx.time (rain, steam, flickering signs, traffic). Photoreal materials and lighting, cinematic; bench ≤ 8 ms."
+ },
+ "bamboo-light": {
+  "title": "Bamboo Light",
+  "brief": "Inside a dense bamboo grove in the morning: tall green culms with realistic nodes and subtle colour variation, layered depth with haze, sun shafts (volumetric god rays) slanting through, leaf litter and a stone path below, dappled light. Serene, fresh, photoreal."
+ },
+ "ink-bloom": {
+  "title": "Ink Bloom",
+  "brief": "SHORT LOOP (8 s), ABSTRACT: clouds of coloured ink (deep indigo, magenta, a touch of gold) blooming and curling in clear water against a soft white or deep-black background, fluid tendrils unfurling and folding with realistic diffusion, slight refraction — a seamless loop where the blooms cross-fade so the motion never visibly restarts. Mesmerising, artful, high-end."
+ },
+ "hidden-peak": {
+  "title": "Hidden Peak",
+  "brief": "TIME-OF-DAY scene of a MADE-UP but natural-looking landscape: a single dramatic pyramid-shaped peak (invented, not a real mountain) with snowfields and rock strata, rising above a green valley with a winding river and pine forest, camera facing WEST-ish so the sun sets beside the peak. Physically based sky from ctx.sunDir (ws_atmosphereFast) → sunrise, bright midday, alpenglow at sunset, blue-hour twilight, and night with stars/Milky Way and the moon at its real position and phase. Time-dependent events: valley mist in the early morning, drifting clouds all day, a distant shepherd's hut whose window glows after dark. Continuous gentle motion from ctx.time (clouds, river shimmer, mist). Beautiful at every hour; bench ≤ 8 ms."
+ },
+ "misty-fjord": {
+  "title": "Misty Fjord",
+  "brief": "Norwegian fjord at dawn: sheer dark rock walls rising from mirror-calm deep-green water, a thin white waterfall ribbon down one cliff, layered headlands receding into low cloud and mist, wet rock detail and moss, a lone tiny fishing hut for scale, soft overcast light with a warm break in the clouds far down the fjord. Photographic, moody, grand."
+ },
+ "ringed-world": {
+  "title": "Ringed World",
+  "brief": "FICTIONAL alien coastline, photographic: a teal ocean and black basalt shore at twilight under a huge ringed gas giant filling part of the sky (rings seen edge-on-ish, casting a shadow band on the planet), two small moons, a sky with unfamiliar star colours, bioluminescent surf glow on the wet sand. Realistic optics and atmosphere — believable as a photo from another world."
+ },
+ "floating-isles": {
+  "title": "Floating Isles",
+  "brief": "FICTIONAL but rendered as if photographed: several massive rock islands floating in the sky above a cloud sea, forests and grass on top, waterfalls spilling off their edges and dissolving into mist below, roots and strata on the undersides, golden late-afternoon light, birds for scale, distant islands fading in haze. Grounded, realistic materials and lighting — no cartoon look."
+ },
+ "silk-folds": {
+  "title": "Silk Folds",
+  "brief": "ABSTRACT: a macro close-up of luxurious folded silk or velvet fabric in deep jewel tones (midnight blue into violet with a warm gold highlight), realistic cloth micro-texture and sheen, soft studio light raking across the folds, shallow depth of field. Elegant, minimal, tactile, hyper-real abstract."
+ }
+}
