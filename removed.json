@@ -1,50 +1,56 @@
 [
- {
-  "removed": "9/10/26",
-  "title": "T Carpet",
-  "reason": "Not good",
-  "id": "still-t-carpet"
- },
- {
-  "title": "Dm",
-  "id": "still-dm",
-  "reason": "not a good one bro",
-  "removed": "9/19/26"
- },
- {
-  "id": "still-dusk-peaks",
-  "title": "Dusk Peaks",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- },
- {
-  "id": "still-midnight-grid",
-  "title": "Midnight Grid",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- },
- {
-  "id": "still-ember-waves",
-  "title": "Ember Waves",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- },
- {
-  "id": "still-emerald-veil",
-  "title": "Emerald Veil",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- },
- {
-  "id": "still-aurora-drift",
-  "title": "Aurora Drift",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- },
- {
-  "id": "still-deep-current",
-  "title": "Deep Current",
-  "reason": "Replaced by the new hyper-realistic version — see Explore.",
-  "removed": "9/21/26"
- }
+  {
+    "removed" : "9\/10\/26",
+    "id" : "still-t-carpet",
+    "reason" : "Not good",
+    "title" : "T Carpet"
+  },
+  {
+    "title" : "Dm",
+    "reason" : "not a good one bro",
+    "removed" : "9\/19\/26",
+    "id" : "still-dm"
+  },
+  {
+    "id" : "still-dusk-peaks",
+    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
+    "title" : "Dusk Peaks",
+    "removed" : "9\/21\/26"
+  },
+  {
+    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
+    "removed" : "9\/21\/26",
+    "id" : "still-midnight-grid",
+    "title" : "Midnight Grid"
+  },
+  {
+    "title" : "Ember Waves",
+    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
+    "removed" : "9\/21\/26",
+    "id" : "still-ember-waves"
+  },
+  {
+    "title" : "Emerald Veil",
+    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
+    "removed" : "9\/21\/26",
+    "id" : "still-emerald-veil"
+  },
+  {
+    "id" : "still-aurora-drift",
+    "title" : "Aurora Drift",
+    "removed" : "9\/21\/26",
+    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+  },
+  {
+    "id" : "still-deep-current",
+    "removed" : "9\/21\/26",
+    "title" : "Deep Current",
+    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+  },
+  {
+    "removed" : "9\/21\/26",
+    "id" : "still-soft-fog",
+    "reason" : "nodt a nice one bto",
+    "title" : "Soft Fog"
+  }
 ]
