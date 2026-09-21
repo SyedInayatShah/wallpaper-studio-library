@@ -80,3 +80,30 @@ Everything that moves must be **exactly periodic in `ctx.t` with period 1**:
   so avoid harsh detail there; strong focal point, depth, and a pleasing brightness (not glaring).
 - Smoothness: supersampling + renderer dithering handle banding/aliasing; add at most very subtle
   grain (`ws_grain`, amplitude ≲ 0.006). Avoid sub-pixel sparkle that flickers in video.
+
+## Dynamic (time-of-day) wallpapers
+
+A *dynamic* scene lives in `dynamic/<slug>.metal` and is **rendered live by the app**
+(1 sample per pixel, ~24 fps, at ~67% resolution upscaled with MetalFX), driven by
+the real clock and the user's location:
+
+- `ctx.sunDir`, `ctx.sunElevation` (degrees), `ctx.moonDir`, `ctx.moonIllum` (0 new … 1 full),
+  `ctx.dayTime` (local hours), `ctx.dayOfYear`, `ctx.realtime` (1 in the app).
+  World frame: **x = east, y = up, z = south** (−z = north). Pick the camera heading by
+  rotating these vectors with `ws_rotY(v, angle)` — e.g. `ws_rotY(ctx.sunDir, -PI/2)` makes a
+  camera looking down −z face **west**, so sunsets happen in view.
+- Motion uses `ctx.time` (continuous seconds; it does NOT loop) — clouds, water, mist, fireflies.
+- Lighting phases by `ctx.sunElevation`: day > 8°, golden hour 0–8°, civil twilight 0 to −6°,
+  nautical −6 to −12°, night < −12° (stars, Milky Way, moon with correct phase from `moonIllum`).
+  The physically based sky (`ws_atmosphere` / cheaper `ws_atmosphereFast`) produces correct
+  sunrise/sunset/twilight colours automatically from `sunDir`.
+- **Performance is part of the quality bar**: `--bench` (1280×800, 1 spp) must be **≤ 8 ms/frame**
+  on the M1 (readings are inflated while other renders share the GPU). No supersampling happens live,
+  so anti-alias analytically (pixel footprint `2.0/ctx.res.y`), avoid sub-pixel detail that shimmers.
+
+Preview tools:
+```bash
+$B dynamic/x.metal --daycycle work/x/day.png              # 9 key moments of today, with times
+$B dynamic/x.metal --preview work/x/p.png --moment sunset  # or --hour 21.5 ; --time 37 for motion
+$B dynamic/x.metal --bench                                 # real-time cost
+```

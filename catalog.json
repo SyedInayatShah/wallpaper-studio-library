@@ -1,27 +1,5 @@
 [
   {
-    "id": "still-aurora-drift",
-    "title": "Aurora Drift",
-    "kind": "still",
-    "file": "stills/aurora-drift.jpg",
-    "thumb": "thumbs/aurora-drift.jpg",
-    "width": 2880,
-    "height": 1800,
-    "creator": "Wallpaper Studio",
-    "created": "9/9/26"
-  },
-  {
-    "id": "still-deep-current",
-    "title": "Deep Current",
-    "kind": "still",
-    "file": "stills/deep-current.jpg",
-    "thumb": "thumbs/deep-current.jpg",
-    "width": 2880,
-    "height": 1800,
-    "creator": "Wallpaper Studio",
-    "created": "9/9/26"
-  },
-  {
     "id": "still-dune-sea",
     "title": "Dune Sea",
     "kind": "still",
@@ -33,15 +11,26 @@
     "created": "9/21/26"
   },
   {
-    "id": "still-emerald-veil",
-    "title": "Emerald Veil",
+    "id": "still-emerald-lake",
+    "title": "Emerald Lake",
     "kind": "still",
-    "file": "stills/emerald-veil.jpg",
-    "thumb": "thumbs/emerald-veil.jpg",
-    "width": 2880,
-    "height": 1800,
+    "file": "stills/emerald-lake.jpg",
+    "thumb": "thumbs/emerald-lake.jpg",
+    "width": 3840,
+    "height": 2400,
     "creator": "Wallpaper Studio",
-    "created": "9/10/26"
+    "created": "9/21/26"
+  },
+  {
+    "id": "still-golden-swell",
+    "title": "Golden Swell",
+    "kind": "still",
+    "file": "stills/golden-swell.jpg",
+    "thumb": "thumbs/golden-swell.jpg",
+    "width": 3840,
+    "height": 2400,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
   },
   {
     "id": "still-neon-horizon",
@@ -75,6 +64,17 @@
     "height": 1800,
     "creator": "Wallpaper Studio",
     "created": "9/9/26"
+  },
+  {
+    "id": "still-stellar-nursery",
+    "title": "Stellar Nursery",
+    "kind": "still",
+    "file": "stills/stellar-nursery.jpg",
+    "thumb": "thumbs/stellar-nursery.jpg",
+    "width": 3840,
+    "height": 2400,
+    "creator": "Wallpaper Studio",
+    "created": "9/21/26"
   },
   {
     "id": "live-aurora-flow",

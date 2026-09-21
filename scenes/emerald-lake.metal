@@ -5,9 +5,10 @@
 
 constant float EL_ALT  = 1885.0;          // lake altitude ASL (sky model)
 constant float EL_HTOP = 2500.0;          // conservative terrain height bound
+constant float3 EL_CAM = float3(-300.0, 22.0, -335.0);   // rockpile viewpoint at the near end, toward the left shore
 
 inline float3 el_sunDir() {
-    float el = 3.5 * PI / 180.0, az = -125.0 * PI / 180.0;   // az from +z toward +x
+    float el = 4.5 * PI / 180.0, az = -108.0 * PI / 180.0;   // az from +z toward +x (raking light from the left)
     return float3(sin(az) * cos(el), sin(el), cos(az) * cos(el));
 }
 
@@ -52,16 +53,27 @@ inline float el_shore(float2 p) {
 
 // smooth large-scale landform: valley floor + side walls + back massif
 inline float el_macro(float2 p, float s) {
-    if (s < 0.0) return -44.0 * (1.0 - exp(s / 70.0));
+    if (s < 0.0) {
+        // glacial basin: a broad shallow shelf (rock-flour fan) along the shores and the
+        // near end, dropping away into the deep basin -- this is what makes the emerald band
+        float shelf = 1.0 - exp(s / 190.0);
+        float basin = 1.0 - exp(s / 980.0);
+        float bump  = 2.2 * gnoise(p * 0.0042 + float2(6.0, 2.0)) * (1.0 - basin);
+        return -(17.0 * shelf + 33.0 * basin) + bump;
+    }
     float x = p.x, z = p.y;
     float xc = x - el_cx(z);
     // side walls
     float lw = smoothstep(250.0, -250.0, xc);                 // 1 on the left side
-    float sl = abs(xc) - mix(620.0, 470.0, lw) - 60.0 * sin(z * 0.0013);
+    float sl = abs(xc) - mix(548.0, 470.0, lw) - 60.0 * sin(z * 0.0013);
     float slp = max(sl, 0.0);
     // right: gentle forested hills
-    float qR = slp / 650.0;
-    float wallR = 300.0 * (1.0 + 0.12 * sin(z * 0.0021 + 1.0)) * qR * qR / (1.0 + qR * qR);
+    float qR = slp / 540.0;
+    float wallR = 392.0 * (1.0 + 0.14 * sin(z * 0.0021 + 1.0) + 0.11 * gnoise(float2(z * 0.00085, 5.5)))
+                * qR * qR / (1.0 + qR * qR);
+    // a nearer forested spur pushing out from the right shore, for silhouette depth
+    float spur = 118.0 * exp(-el_sq((z - 760.0) / 420.0)) * smoothstep(0.0, 260.0, slp);
+    wallR += spur;
     // left: forested ~30 deg lower slope, then a cliff band up to the crest
     float cn = gnoise(float2(z * 0.0016, 3.7));
     float wallL = (560.0 + 70.0 * cn) * tanh(slp * 0.62 / 560.0) + 0.06 * max(slp - 1300.0, 0.0);
@@ -72,9 +84,12 @@ inline float el_macro(float2 p, float s) {
               + beyond * 75.0 * (0.55 + 0.45 * gnoise(p * 0.0022 + float2(3.0, 8.0)));
     float land = flo + wall;
     // back massif: crest recedes to the right, focal summit left of centre
-    float zc = 4650.0 + 0.42 * max(x + 200.0, 0.0) + 200.0 * sin(x * 0.0011 + 1.0);
+    float serr = 0.5 - 0.5 * cos(x * (TAU / 1150.0) + 0.4);          // 0 at peaks, 1 at cols
+    float serrN = 0.65 + 0.35 * gnoise(float2(x * 0.0007, 2.5));
+    float zc = 4650.0 + 0.42 * max(x + 200.0, 0.0) + 200.0 * sin(x * 0.0011 + 1.0) + 240.0 * serr * serrN;
     float Hpk = 1060.0 + 470.0 * exp(-el_sq((x + 380.0) / 720.0)) + 210.0 * exp(-el_sq((x + 1650.0) / 600.0))
-              + 170.0 * exp(-el_sq((x - 950.0) / 520.0)) - 280.0 * smoothstep(900.0, 3200.0, x);
+              + 170.0 * exp(-el_sq((x - 950.0) / 520.0)) - 280.0 * smoothstep(900.0, 3200.0, x)
+              - 230.0 * pow(serr, 1.4) * serrN;
     float dz = clamp(abs(z - zc) / 1900.0, 0.0, 1.0);
     float massif = Hpk * pow(1.0 - dz, 1.6);
     land = el_smax(land, massif, 180.0);
@@ -139,6 +154,7 @@ inline int el_lod(float t, float pa, float bias) {
 inline float el_forestMask(float2 p, float s, float h) {
     float n = gnoise(p * 0.0028 + float2(3.1, 7.7)) + 0.5 * gnoise(p * 0.009 + float2(1.0, 2.0));
     float tl = 330.0 + 90.0 * gnoise(p * 0.0017 + float2(8.0, 1.0)) + 45.0 * gnoise(p * 0.007 + float2(2.0, 9.0));
+    tl += 205.0 * smoothstep(150.0, 700.0, p.x - el_cx(p.y));   // sheltered, forested right-shore hills
     float m = smoothstep(-0.7 + 0.35 * smoothstep(60.0, 200.0, h), -0.1, n);
     m *= smoothstep(3.0, 12.0, s) * (1.0 - smoothstep(tl - 80.0, tl + 15.0, h));
     // avalanche paths down the steep left valley wall (fall line ~ +x)
@@ -147,6 +163,7 @@ inline float el_forestMask(float2 p, float s, float h) {
     float av = abs(gnoise(float2(p.x * 0.0011, p.y * 0.0105) + float2(4.0, 0.0)));
     float avp = (1.0 - smoothstep(0.05, 0.12, av)) * smoothstep(-0.2, 0.3, gnoise(float2(p.y * 0.002, 1.5)));
     m *= 1.0 - lw * avp * smoothstep(40.0, 120.0, h);
+    m *= smoothstep(70.0, 110.0, length(p - EL_CAM.xz));       // bare moraine around the viewpoint
     return m;
 }
 
@@ -158,7 +175,7 @@ inline float2 el_macroGrad(float2 p) {
 }
 
 // conifer SDF near p. ground: terrain height at p, g: ground gradient
-inline float el_trees(float3 p, float ground, float2 g, float dens, thread float4 &info) {
+inline float el_trees(float3 p, float ground, float2 g, float dens, float grove, thread float4 &info) {
     const float C = 6.0;
     float2 cell = floor(p.xz / C);
     float dmin = 1e5;
@@ -168,9 +185,10 @@ inline float el_trees(float3 p, float ground, float2 g, float dens, thread float
         float2 id = cell + float2(i, j);
         float4 h = hash24(id + float2(31.0, 17.0));
         if (h.z > dens) continue;
-        float2 c = (id + 0.5 + (h.xy - 0.5) * 0.75) * C;
+        float2 c = (id + 0.5 + (h.xy - 0.5) * 0.92) * C;
         float base = ground + dot(g, c - p.xz);
-        float H = (13.0 + 17.0 * fract(h.w * 13.7)) * (1.0 - 0.45 * smoothstep(180.0, 420.0, base));
+        float stand = 0.82 + 0.38 * hash11(dot(floor(id / 6.0), float2(1.0, 37.0)) * 0.1131 + 5.3);
+        float H = (11.0 + 21.0 * fract(h.w * 13.7)) * grove * stand * (1.0 - 0.45 * smoothstep(180.0, 420.0, base));
         float3 q = p - float3(c.x, base - 0.5, c.y);
         q.xz -= (float2(fract(h.w * 71.3), fract(h.w * 37.9)) - 0.5) * 0.06 * q.y;   // slight lean
         float y = q.y;
@@ -206,7 +224,8 @@ inline float el_map(float3 p, int oct, thread int &mat, thread float4 &tinfo) {
             fm *= 1.0 - smoothstep(0.8, 1.2, length(g));
             if (fm > 0.02) {
                 float4 inf;
-                float dt = el_trees(p, h, g, fm, inf);
+                // stand-scale height variation: dense mature groves vs thin stunted edges
+                float dt = el_trees(p, h, g, fm, 0.74 + 0.58 * fm, inf);
                 if (dt < d) { d = dt; mat = 2; tinfo = inf; }
             }
         }
@@ -275,6 +294,15 @@ inline float2 el_erosionH(float2 p, float2 g, int oct) {
 inline float3 el_terrainNormal(float2 p, float t, float pa) {
     int oct = el_lod(t, pa, -1.0);
     float e = max(0.05, 0.7 * pa * t);
+    float h0 = el_height(p, oct);
+    float hx = el_height(p + float2(e, 0.0), oct);
+    float hz = el_height(p + float2(0.0, e), oct);
+    return normalize(float3(h0 - hx, e, h0 - hz));
+}
+
+// normal at an explicit metre scale e (ledge-scale snow decisions, independent of resolution)
+inline float3 el_normalAt(float2 p, float e) {
+    int oct = clamp(int(log2(420.0 / e)), 3, 11);
     float h0 = el_height(p, oct);
     float hx = el_height(p + float2(e, 0.0), oct);
     float hz = el_height(p + float2(0.0, e), oct);
@@ -352,7 +380,7 @@ struct ELLight { float3 sun; float3 sunE; float3 skyUp; float3 skyHz; float3 sky
 
 // sky irradiance / PI for a surface with normal n (includes a multiple-scattering boost)
 inline float3 el_skyLight(float3 n, ELLight L) {
-    return L.skyAmb * (0.55 + 0.45 * n.y) + L.skySun * 0.30 * max(dot(n, L.sunH), 0.0);
+    return L.skyAmb * (0.55 + 0.45 * n.y) + L.skySun * 0.42 * max(dot(n, L.sunH), 0.0);
 }
 
 inline float3 el_skyBase(float3 rd, float3 sun) {
@@ -361,21 +389,69 @@ inline float3 el_skyBase(float3 rd, float3 sun) {
     return ws_atmosphere(normalize(r), sun, 22.0, 0.76, 1.0, EL_ALT);
 }
 
-inline float3 el_sky(float3 rd, ELLight L) {
+// volumetric altocumulus field hanging behind the massif (kept out of the top-right)
+inline float el_cloudVol(float3 p) {
+    float h01 = (p.y - 2150.0) / 380.0;
+    if (h01 <= 0.0 || h01 >= 1.0) return 0.0;
+    float region = smoothstep(0.30, -0.05, p.x / max(p.z, 1.0)) * smoothstep(5000.0, 7000.0, p.z);
+    if (region <= 0.0) return 0.0;
+    float cov = fbm(p.xz * float2(0.00030, 0.00055) + float2(3.0, 11.0), 3);
+    float prof = smoothstep(0.0, 0.25, h01) * (1.0 - smoothstep(0.35, 1.0, h01));
+    float n = fbm(p * float3(0.0016, 0.003, 0.0016) + float3(1.7, 0.0, 4.2), 7);
+    float d = (cov + 0.45 * n - 0.02) * prof - 0.14 - 0.25 * (1.0 - prof);
+    d -= 0.07 * (0.5 + 0.5 * gnoise(p * 0.012)) + 0.04 * abs(gnoise(p * 0.03 + 5.0));   // wispy eroded edges
+    return clamp(d * 5.5, 0.0, 1.0) * region;
+}
+
+inline float el_hg(float mu, float g) {
+    float gg = g * g;
+    return (1.0 - gg) / (4.0 * PI * pow(1.0 + gg - 2.0 * g * mu, 1.5));
+}
+
+inline float3 el_sky(float3 rd, ELLight L, float jit) {
     float3 col = el_skyBase(rd, L.sun);
-    if (rd.y > 0.01) {
-        float tc = 6500.0 / rd.y;
-        float3 cp = rd * tc;
-        float mask = smoothstep(0.30, -0.10, rd.x / max(rd.z, 0.1));
-        float dens = el_cloudDens(cp.xz) * mask;
-        if (dens > 0.001) {
-            // high ice cloud: lit by a less-reddened sun than the valley floor
-            float3 sunHigh = mix(L.sunE, float3(1.0, 0.82, 0.62) * 16.0, 0.35);
-            float3 cc = sunHigh * 0.05 + L.skyAmb * 0.35;
-            float fade = smoothstep(0.03, 0.2, rd.y);
-            float a = dens * 0.42 * fade;
-            col = col * (1.0 - a * 0.25) + cc * a;
+    if (rd.y > 0.03) {
+        float t0 = 2150.0 / rd.y, t1 = min(2530.0 / rd.y, t0 + 9000.0);
+        const int NS = 26;
+        float dt = (t1 - t0) / float(NS);
+        float T = 1.0;
+        float3 S = float3(0.0);
+        float mu = dot(rd, L.sun);
+        float ph = mix(el_hg(mu, 0.6), el_hg(mu, -0.25), 0.4) * 4.0 * PI;   // relative to isotropic
+        float3 sunC = L.sunE * float3(1.0, 1.02, 1.1);
+        for (int i = 0; i < NS; i++) {
+            float3 p = rd * (t0 + dt * (float(i) + jit));
+            float d = el_cloudVol(p);
+            if (d > 0.005) {
+                float sig = d * 0.0045;
+                float od = 0.0;
+                od += el_cloudVol(p + L.sun * 90.0) * 90.0;
+                od += el_cloudVol(p + L.sun * 280.0) * 190.0;
+                od += el_cloudVol(p + L.sun * 650.0) * 370.0;
+                float Tl = exp(-od * 0.0036);
+                float powder = 1.0 - exp(-sig * 400.0);
+                float h01 = (p.y - 2150.0) / 380.0;
+                float3 Lin = sunC * (ph * Tl * (0.30 + 0.70 * powder)) / PI * 0.85 + L.skyAmb * (0.30 + 0.35 * h01);
+                float a = 1.0 - exp(-sig * dt);
+                S += T * a * Lin;
+                T *= 1.0 - a;
+                if (T < 0.02) break;
+            }
         }
+        float fade = smoothstep(0.03, 0.08, rd.y);
+        col = mix(col, col * T + S, fade);
+    }
+    // alpine haze layer: thickest at the horizon, thinning through the ridgeline band,
+    // warmer where it looks toward the lit side of the valley
+    {
+        float3 h = normalize(float3(rd.x, 0.0, rd.z) + 1e-5);
+        float band = exp(-max(rd.y, 0.0) / 0.072) * (0.55 + 0.45 * smoothstep(-0.02, 0.12, rd.y));
+        float tex = 0.72 + 0.56 * fbm(float2(h.x * 2.6 + rd.y * 1.4, h.z * 2.1 - rd.y * 5.5) + float2(3.0, 8.0), 3);
+        float warm = 0.30 + 0.70 * max(dot(h, L.sunH), 0.0);
+        float3 hazeC = mix(L.skyAmb * 1.30, L.skySun * 0.46 + L.sunE * 0.0032, warm);
+        col = mix(col, hazeC, clamp(0.40 * band * tex, 0.0, 0.62));
+        // very slight low-frequency luminance drift so the gradient is not machine-clean
+        col *= 1.0 + 0.022 * gnoise(float2(h.x * 3.1, rd.y * 9.0) + float2(5.0, 2.0));
     }
     return col;
 }
@@ -422,10 +498,19 @@ inline float3 el_shadeTerrain(float3 p, float3 rd, float t, float pa, ELLight L,
     float lay = mix(hash11(floor(hsid * 2.0) * 0.5 + 0.37), 0.5 + 0.5 * gnoise(p.xz * 0.004 + float2(3.0, 1.0)), 0.45);
     float strataVis = smoothstep(300.0, 700.0, p.y) * (0.5 + 0.5 * smoothstep(-0.3, 0.3, gnoise(p.xz * 0.0015 + float2(9.0, 4.0))));
     lay = mix(0.5, lay, strataVis);
+    float hue = smoothstep(-0.4, 0.5, gnoise(p.xz * 0.0009 + float2(1.0, 8.0)) + 0.3 * gnoise(p.xz * 0.004));
     float3 rock = mix(float3(0.125, 0.115, 0.105), float3(0.20, 0.182, 0.162), lay);
+    rock *= mix(float3(0.92, 0.96, 1.04), float3(1.08, 0.99, 0.88), hue);     // grey limestone vs brown quartzite
     rock = mix(rock, float3(0.27, 0.245, 0.21), smoothstep(0.85, 0.98, lay) * strataVis);
-    float streak = gnoise(float2((p.x + p.z) * 0.06, p.y * 0.004));
-    rock *= (0.8 + 0.4 * (0.5 + 0.5 * n3)) * (0.88 + 0.24 * n1) * (0.85 + 0.25 * streak);
+    // domain-warped, multi-frequency weathering streaks (no regular vertical comb)
+    float2 sw = float2(gnoise(p.xz * 0.023 + float2(3.3, 7.9)), gnoise(p.xz * 0.0075 + float2(8.1, 1.2)));
+    float streak = gnoise(float2((p.x + p.z) * 0.052 + 11.0 * sw.x, p.y * 0.0042 + 46.0 * sw.y))
+                 + 0.55 * gnoise(float2((p.x - 0.6 * p.z) * 0.017 + 5.0 * sw.y, p.y * 0.0013 + 3.0))
+                 + 0.32 * gnoise(float2((p.x + 1.7 * p.z) * 0.135 + 2.0 * sw.x, p.y * 0.011));
+    streak *= 0.62;
+    float blotch = gnoise(p.xz * 0.0055 + float2(6.4, 2.8)) + 0.5 * gnoise(p.xz * 0.019 + float2(1.9, 5.5));
+    rock *= (0.8 + 0.4 * (0.5 + 0.5 * n3)) * (0.88 + 0.24 * n1) * (0.85 + 0.25 * streak)
+          * (0.90 + 0.16 * blotch);
     rock = mix(rock, float3(0.21, 0.205, 0.195), smoothstep(0.6, 0.85, n.y) * 0.5); // scree
     float fm = el_forestMask(p.xz, s, p.y) * (1.0 - smoothstep(0.75, 1.15, length(mg))) * smoothstep(0.55, 0.75, n.y);
     float low = (1.0 - smoothstep(250.0, 560.0, p.y + 90.0 * n1)) * smoothstep(0.62, 0.82, n.y);
@@ -434,18 +519,39 @@ inline float3 el_shadeTerrain(float3 p, float3 rd, float t, float pa, ELLight L,
     rock = mix(rock, float3(0.19, 0.185, 0.175) * (0.9 + 0.2 * n2), scree * 0.7);
     rock = mix(rock, meadow, low);
     float crown = vnoise(p.xz / 3.2) * 0.6 + vnoise(p.xz / 1.4) * 0.4;
-    float3 alb = mix(rock, float3(0.028, 0.046, 0.030) * (0.45 + 1.1 * crown), fm * 0.95);
+    float3 alb = mix(rock, float3(0.046, 0.075, 0.048) * (0.5 + 1.0 * crown), fm * 0.95);
     alb = mix(alb, float3(0.20, 0.19, 0.17) * (0.8 + 0.4 * n2), (1.0 - smoothstep(0.0, 3.0, s)) * step(-0.5, p.y));
-    float3 ns = el_terrainNormal(p.xz, t * 6.0, pa);
-    float snowH = smoothstep(380.0, 850.0, p.y + 140.0 * n1);
-    float sy = mix(ns.y, n.y, 0.35);
-    float snow = smoothstep(0.76, 0.86, sy + 0.07 * n1 + 0.05 * n2 + 0.05 * snowH - 0.22 * min(gully, 0.0)) * snowH;
-    alb = mix(alb, float3(0.86, 0.88, 0.92), snow);
+    // snow: ledges and gentler slopes (decided at ~5 m scale), couloirs, scoured off micro-cliffs
+    float eS = clamp(0.7 * pa * t * 1.5, 3.0, 12.0);
+    float3 ns = el_normalAt(p.xz, eS);
+    float snowH = smoothstep(480.0, 820.0, p.y + 110.0 * n1);
+    float high = smoothstep(950.0, 1500.0, p.y);
+    float thr = mix(0.84, 0.66, high) - 0.045 * gnoise(p.xz * 0.0026 + float2(2.4, 6.1));
+    // wide, noise-broken transition: partial cover melting back off the rock, not a painted mask
+    float sv = ns.y + 0.055 * n1 + 0.030 * n2 + 0.022 * gnoise(p.xz * 0.045 + float2(4.0, 9.0));
+    float snow = smoothstep(thr - 0.135, thr + 0.115, sv) * snowH;
+    float couloir = smoothstep(0.10, 0.40, -gully) * smoothstep(0.34, 0.66, ns.y) * snowH;
+    snow = max(snow, couloir * 0.85);
+    snow *= smoothstep(0.10, 0.40, n.y);
+    // drifted snow is bright and slightly warm on the crowns, blue-shadowed where it sits
+    // in hollows and on steeper, more occluded faces
+    float drift = smoothstep(0.55, 0.95, ns.y) * (0.6 + 0.4 * ao);
+    float3 snowCol = mix(float3(0.600, 0.660, 0.780), float3(0.855, 0.875, 0.905), drift)
+                   * (0.90 + 0.10 * n2) * (0.88 + 0.18 * ao);
+    alb = mix(alb, snowCol, snow);
 
     float dif = max(dot(n, L.sun), 0.0);
+    // cavity term: where the fine normal departs from the ledge-scale one the rock is
+    // broken and self-shadows the skylight -- this is what keeps the shaded faces modelled
+    float cav = clamp(dot(n, ns), 0.0, 1.0);
+    float meso = mix(0.66, 1.10, smoothstep(0.55, 0.985, cav));
+    meso = mix(1.0, meso, smoothstep(180.0, 420.0, p.y));
     float3 col = alb * (L.sunE * dif * sh / PI);
-    col += alb * el_skyLight(n, L) * ao;
+    col += alb * el_skyLight(n, L) * ao * meso;
     col += alb * float3(0.30, 0.27, 0.22) * L.skyAmb * 0.25 * (0.5 - 0.5 * n.y) * ao;   // ground bounce
+    // green light kicked back up off the lake onto the shaded shoreline slopes
+    float lakeB = exp(-max(p.y, 0.0) / 88.0) * (0.25 + 0.75 * (1.0 - n.y));
+    col += alb * float3(0.105, 0.345, 0.300) * 1.30 * lakeB * ao;
     return col;
 }
 
@@ -455,68 +561,121 @@ inline float3 el_shadeTree(float3 p, float3 rd, float t, float pa, float4 ti, EL
     shOut = sh;
     float hn = ti.x;
     float radial = clamp(ti.y, 0.0, 1.2);
-    float occ = (0.3 + 0.7 * smoothstep(0.45, 1.0, radial)) * (0.45 + 0.55 * hn) * (0.65 + 0.35 * (1.0 - ti.w));
-    float3 alb = float3(0.030, 0.050, 0.034) * (0.75 + 0.5 * ti.z);
+    float occ = (0.5 + 0.5 * smoothstep(0.45, 1.0, radial)) * (0.6 + 0.4 * hn) * (0.75 + 0.25 * (1.0 - ti.w));
+    // species / age variation: some lighter yellow-green trees, a few grey dead snags
+    float v = fract(ti.z * 7.3);
+    float3 alb = mix(float3(0.052, 0.088, 0.055), float3(0.085, 0.105, 0.048), smoothstep(0.5, 0.9, v));
+    alb = mix(alb, float3(0.075, 0.072, 0.066), smoothstep(0.96, 0.985, v));
+    alb *= 0.85 + 0.3 * fract(ti.z * 3.1);
     float dif = max(dot(n, L.sun), 0.0);
     float3 col = alb * L.sunE * dif * sh * occ / PI;
     col += alb * el_skyLight(n, L) * occ;
+    // needle sheen: grazing sky reflection on the outer crown
+    float fr = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 4.0);
+    col += L.skyAmb * 0.035 * fr * occ * (0.5 + 0.5 * n.y);
+    // lake bounce on the shoreline conifers
+    float lakeB = exp(-max(p.y, 0.0) / 78.0) * (0.3 + 0.7 * (1.0 - n.y));
+    col += alb * float3(0.105, 0.345, 0.300) * 1.45 * lakeB * occ;
+    // open sky seen between the ranks lifts the upper crowns a little
+    col += alb * L.skyAmb * 0.55 * smoothstep(0.35, 0.95, hn) * (0.4 + 0.6 * n.y);
     return col;
 }
 
 // aerial perspective
 inline float3 el_fog(float3 col, float t, float3 ro, float3 rd, ELLight L, float sh) {
     // in-scatter is weaker (and bluer) when the air near the target is in shadow
-    float3 hz = el_skyBase(normalize(float3(rd.x, 0.03, rd.z)), L.sun) * mix(float3(0.55, 0.62, 0.75), float3(1.0), sh);
+    float3 hz = el_skyBase(normalize(float3(rd.x, 0.03, rd.z)), L.sun)
+              * mix(float3(0.55, 0.62, 0.75), float3(1.16, 1.09, 0.99), sh);
     float3 beta = float3(5.8e-6, 13.5e-6, 33.1e-6) * 1.3 + 8e-6;
-    float hf = ws_fogAmount(t, ro, rd, 5e-5, 1.0 / 200.0);
+    float hf = ws_fogAmount(t, ro, rd, 8.2e-5, 1.0 / 185.0);
     float3 ext = exp(-beta * t) * (1.0 - hf);
     return col * ext + hz * 0.85 * (1.0 - ext);
 }
 
 // ------------------------------------------------------------ water
-inline float3 el_waterNormal(float2 p, float t, float grazing, float pa) {
-    // wind patches (cat's paws), elongated across the view
-    float wind = smoothstep(-0.15, 0.55, fbm(p * float2(0.0035, 0.009) + float2(1.3, 4.1), 4));
-    float calmShore = smoothstep(0.0, 60.0, -el_shore(p));
+// returns normal; ruffle in .w-ish via out param: 0 glassy .. 1 wind-ruffled
+inline float el_windPatch(float2 p) {
+    float2 wp = p * float2(0.0016, 0.0062);
+    float wind = fbm(wp + float2(1.3, 4.1), 3) + 0.45 * fbm(wp * 2.7 + float2(7.0, 2.0), 2);
+    wind = smoothstep(0.16, 0.56, wind);
+    float calmShore = smoothstep(0.0, 90.0, -el_shore(p));
+    return max(0.075, wind * (0.25 + 0.75 * calmShore));
+}
+// one swell train: its own heading, anisotropy and phase, sampled in a warped domain.
+// the gradient is rotated back to world so the slopes stay coherent across trains.
+inline float2 el_swell(float2 p, float2 warp, float2 sc, float ang, float2 off) {
+    float c = cos(ang), sn = sin(ang);
+    float2 r = float2(c * p.x - sn * p.y, sn * p.x + c * p.y) + warp;
+    float2 d = el_noised(r * sc + off).yz;
+    return float2(c * d.x + sn * d.y, -sn * d.x + c * d.y);
+}
+inline float3 el_waterNormal(float2 p, float t, float grazing, float pa, float ruffle) {
     float footX = pa * t;
     float footZ = pa * t / max(grazing, 0.01);
     float2 g = float2(0.0);
-    float2 q = p * float2(0.22, 1.0) / 14.0;           // crests run along x
-    float wl = 14.0;
-    const float2x2 R = float2x2(float2(0.96, 0.28), float2(-0.28, 0.96));
-    for (int i = 0; i < 8; i++) {
-        float amp = (i < 2) ? 0.0035 : (0.0025 + 0.011 * wind) * (0.35 + 0.65 * calmShore);
-        // filter: fade octaves smaller than the pixel footprint
+    // low-frequency domain warp: destroys the regular lattice the gradient-noise cells
+    // would otherwise print across the reflection as a comb pattern
+    float2 wrp = float2(gnoise(p * float2(0.0026, 0.0061) + float2(11.3, 3.4)),
+                        gnoise(p * float2(0.0023, 0.0055) + float2(2.6, 17.1)));
+    // long gentle swell (glassy regime): barely visible waviness
+    {
+        // each train washes out once the pixel footprint exceeds its wavelength
+        float f0 = 1.0 - smoothstep(16.0, 62.0, footZ);
+        float f1 = 1.0 - smoothstep(6.0, 22.0, footZ);
+        float f2 = 1.0 - smoothstep(2.2, 8.0, footZ);
+        if (f0 > 0.002) g += 0.00195 * el_swell(p, wrp * 44.0, float2(0.0084, 0.0213), -0.31, float2(3.0, 1.0)) * float2(0.78, 1.0) * f0;
+        if (f1 > 0.002) g += 0.00125 * el_swell(p, wrp * 19.0, float2(0.0310, 0.0545), 0.47, float2(9.0, 4.0)) * float2(0.72, 1.0) * f1;
+        if (f2 > 0.002) g += 0.00080 * el_swell(p, wrp * 7.0,  float2(0.0590, 0.1810), -0.88, float2(5.0, 8.0)) * float2(0.66, 1.0) * f2;
+        // a fourth, very shallow train crossing the others at a wide angle breaks any
+        // residual corrugation into irregular chop
+        if (f1 > 0.002) g += 0.00075 * el_swell(p, wrp * 12.0, float2(0.0175, 0.0905), 1.24, float2(13.0, 6.0)) * float2(0.55, 1.0) * f1;
+    }
+    // wind ripples (matte regime) -- irrational lacunarity + rotating frame, no repeats
+    float2 q = p * float2(0.25, 1.0) / 6.0;
+    float wl = 6.0;
+    const float2x2 R = float2x2(float2(0.873, 0.488), float2(-0.488, 0.873));
+    for (int i = 0; i < 6; i++) {
+        float amp = 0.010 * ruffle * (0.78 + 0.44 * fract(float(i) * 0.6180339));
         float fz = 1.0 - smoothstep(0.6 * wl, 2.4 * wl, footZ);
         float fx = 1.0 - smoothstep(0.6 * wl, 2.4 * wl, footX * 4.0);
         float3 nd = el_noised(q);
-        g += amp * nd.yz * float2(0.22 * fx, fz) * 0.7;
-        q = R * q * 2.0;
-        wl *= 0.5;
+        g += amp * nd.yz * float2(0.35 * fx, fz) * 0.7;
+        q = R * q * 1.873 + float2(4.7, 2.3);
+        wl /= 1.873;
     }
     return normalize(float3(-g.x, 1.0, -g.y));
 }
 
 // ------------------------------------------------------------ mist
 inline float3 el_mist(float3 col, float3 ro, float3 rd, float tEnd, float jit, ELLight L) {
-    const float MH = 45.0;
-    float t0 = 0.0, t1 = min(tEnd, 3200.0);
+    const float MH = 40.0;
+    float t1 = min(tEnd, 3000.0);
     if (rd.y > 0.0) t1 = min(t1, max((MH - ro.y) / rd.y, 0.0));
-    if (t1 <= t0) return col;
-    const int NS = 12;
-    float dt = (t1 - t0) / float(NS);
+    if (t1 <= 0.0) return col;
+    const int NS = 30;
     float Tm = 1.0;
     float3 acc = float3(0.0);
-    float3 mistCol = L.skyAmb * 1.1;
+    // shaded valley mist is sky-lit and cool; the far end picks up a little warm bounce
+    float3 mistCol = L.skyAmb * 1.18 + L.skySun * 0.10 * max(dot(rd, L.sunH), 0.0);
     for (int i = 0; i < NS; i++) {
-        float tt = t0 + dt * (float(i) + jit);
+        // denser samples near the camera (power-law spacing), jittered
+        float u0 = float(i) / float(NS), u1 = float(i + 1) / float(NS);
+        float ta = t1 * pow(u0, 1.7), tb = t1 * pow(u1, 1.7);
+        float tt = mix(ta, tb, jit);
+        float dt = tb - ta;
         float3 q = ro + rd * tt;
         if (q.y > MH) continue;
-        float s = el_shore(q.xz);
-        float over = 1.0 - smoothstep(-20.0, 60.0, s);
-        float patch = smoothstep(-0.05, 0.45, fbm(q.xz * float2(0.0016, 0.0045) + float2(6.0, 1.0), 3));
-        float wisp = fbm(float3(q.x * 0.010, q.y * 0.05, q.z * 0.025) + float3(2.0, 0.0, 5.0), 4);
-        float den = 0.006 * exp(-max(q.y, 0.0) / 11.0) * smoothstep(0.05, 0.55, wisp) * patch * over;
+        // low-lying banks: large soft patches, thinning toward the far end of the lake
+        float bank = fbm(q.xz * float2(0.0022, 0.0055) + float2(6.0, 1.0), 3);
+        float wisp = gnoise(float3(q.x * 0.012, q.y * 0.06, q.z * 0.03) + float3(2.0, 0.0, 5.0));
+        float m = smoothstep(0.04, 0.64, bank + 0.3 * wisp
+                  + 0.22 * gnoise(float3(q.x * 0.0055, 0.0, q.z * 0.0018) + float3(8.0, 0.0, 2.0)));
+        float far = 1.0 - 0.7 * smoothstep(1200.0, 2600.0, q.z);
+        float den = 0.0052 * exp(-max(q.y, 0.0) / 10.0) * m * far;
+        // drifting wisps standing a little higher off the water, in patches
+        float wp = smoothstep(0.25, 0.65, fbm(q.xz * float2(0.004, 0.011) + float2(2.0, 9.0), 3));
+        float wisp2 = smoothstep(0.0, 0.6, gnoise(float3(q.x * 0.02, q.y * 0.09, q.z * 0.05) + float3(7.0, 1.0, 3.0)));
+        den += 0.0038 * exp(-max(q.y - 4.0, 0.0) / 17.0) * wp * wisp2 * smoothstep(120.0, 450.0, q.z);
         float a = 1.0 - exp(-den * dt);
         acc += Tm * a * mistCol;
         Tm *= 1.0 - a;
@@ -545,10 +704,10 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
         res = Z.zw;
     }
 #endif
-    float3 ro = float3(0.0, 3.2, 0.0);
-    float pitch = 3.3 * PI / 180.0;
+    float3 ro = EL_CAM;
+    float pitch = 4.4 * PI / 180.0;
     float3 ta = ro + float3(0.02, tan(pitch), 1.0) * 1000.0;
-    const float fov = 40.0;
+    const float fov = 44.0;
     float3 rd = el_camRay(fragCoord, res, ro, ta, fov);
     float pa = 2.0 * tan(fov * PI / 360.0) / res.y;   // pixel angle (rad)
 
@@ -580,16 +739,24 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
     } else if (tWater < 1e8) {
         tTot = tWater;
         float3 P = ro + rd * tWater;
-        float3 n = el_waterNormal(P.xz, tWater, -rd.y, pa);
+        float ruffle = el_windPatch(P.xz);
+        float3 n = el_waterNormal(P.xz, tWater, -rd.y, pa, ruffle);
         float3 r = reflect(rd, n);
         r.y = max(r.y, 0.001);
         int rm; float4 rti;
         float rpa = pa * 1.5;
-        float rt = el_march(P, r, 0.5, 14000.0, 200, rpa, 0.5, rm, rti);
+        float rt = el_march(P, r, 0.5, 14000.0, 150, rpa, 0.5, rm, rti);
         float3 rc;
         if (rm == 1) { rc = el_shadeTerrain(P + r * rt, r, rt + tWater, rpa, L, shh); rc = el_fog(rc, rt + tWater, P, r, L, shh); }
         else if (rm == 2) { rc = el_shadeTree(P + r * rt, r, rt + tWater, rpa, rti, L, shh); rc = el_fog(rc, rt + tWater, P, r, L, shh); }
-        else { rc = el_sky(r, L); }
+        else { rc = el_sky(r, L, hash12(fragCoord + 7.1)); }
+        // ruffled patches integrate many micro-facets: reflection goes matte toward the mid sky
+        if (ruffle > 0.01) {
+            float3 rm3 = reflect(rd, normalize(float3(0.0, 1.0, -0.12)));
+            rm3.y = max(rm3.y, 0.05);
+            float3 matte = el_skyBase(normalize(rm3), L.sun) * 0.9;
+            rc = mix(rc, matte, 0.6 * ruffle);
+        }
 #ifdef EL_DBGREF
         return float3(rm == 1 ? 1.0 : 0.0, rm == 2 ? 1.0 : 0.0, rm == 0 ? 1.0 : 0.0) * (0.3 + 0.7 * shh) + float3(0.0, 0.0, 0.0) * rt;
 #endif
@@ -601,21 +768,40 @@ float3 scene(float2 fragCoord, WSCtx ctx) {
         float depth = max(-el_height(P.xz, 6), 0.0);
         float3 tr = refract(rd, n, 1.0 / 1.333);
         float path = depth / max(-tr.y, 0.15);
-        float3 sigma = float3(0.45, 0.085, 0.10);
+        float3 sigma = float3(0.42, 0.052, 0.105);
         float3 T = exp(-sigma * (path + depth));
-        float3 skyIrr = L.skyAmb;
-        float3 scat = skyIrr * float3(0.035, 0.30, 0.26);
-        float3 bottomAlb = float3(0.30, 0.29, 0.25) * (0.7 + 0.3 * gnoise(P.xz * 0.9));
+        // downwelling light inside the water integrates the whole sky plus the warm sun,
+        // so it is far less blue than the shaded-slope ambient
+        float lum = dot(L.skyAmb, float3(0.28, 0.52, 0.20));
+        float3 skyIrr = mix(L.skyAmb, float3(lum), 0.62) * 1.25 + L.sunE * 0.010 * max(L.sun.y, 0.0);
+        // suspended rock flour: emerald in the shallows, teal where the basin drops away,
+        // with slow plumes of turbidity drifting out from the inflow
+        float turb = fbm(P.xz * float2(0.0013, 0.00075) + float2(4.0, 7.0), 3);
+        turb = 0.94 + 0.18 * smoothstep(-0.30, 0.40, turb * 1.4);
+        float dp = smoothstep(1.6, 19.0, depth * (2.02 - turb));
+        // shallow rock flour is strongly green-dominant; the deep basin drifts to teal
+        float3 scat = skyIrr * mix(float3(0.120, 0.720, 0.268), float3(0.050, 0.330, 0.330), dp) * (1.26 * turb);
+        // silty bottom with stones
+        float2 bp = P.xz + tr.xz * path;
+        bp += 1.6 * float2(gnoise(bp * 0.27 + float2(2.0, 5.0)), gnoise(bp * 0.31 + float2(8.0, 1.0)));
+        float2 wv = worley(bp * 0.8);
+        float2 wv2 = worley(bp * 2.3 + float2(4.0, 9.0));
+        float stone = smoothstep(0.08, 0.35, wv.y - wv.x) * smoothstep(-0.3, 0.4, gnoise(bp * 0.15))
+                    + 0.5 * smoothstep(0.06, 0.30, wv2.y - wv2.x) * smoothstep(-0.2, 0.5, gnoise(bp * 0.42 + 3.0));
+        float3 bottomAlb = float3(0.52, 0.485, 0.375) * (0.72 + 0.28 * gnoise(bp * 0.9)) * (0.85 + 0.35 * stone);
         float3 body = scat * (1.0 - T) + bottomAlb * skyIrr * T;
+        // the water column is lifted independently of the rock so the shallows can read
+        // luminous without pushing the sunlit peaks toward clipping
+        body *= 0.955;
         col = body * (1.0 - F) + rc * F;
     } else {
-        col = el_sky(rd, L);
+        col = el_sky(rd, L, hash12(fragCoord + 3.7));
         tTot = 1e5;
     }
 
     col = el_mist(col, ro, rd, tTot, hash12(fragCoord), L);
 
-    float3 c = col * 1.45;
+    float3 c = col * (1.585 * ws_vignette(fragCoord / res, 0.26));
     c = ws_acesFitted(c);
     c += ws_grain(fragCoord, ctx.t) * 0.003;
     return c;

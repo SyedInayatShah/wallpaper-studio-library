@@ -1,13 +1,5 @@
 {
- "aurora-drift": {
-  "created": "9/9/26",
-  "creator": "Wallpaper Studio"
- },
  "aurora-flow": {
-  "created": "9/9/26",
-  "creator": "Wallpaper Studio"
- },
- "deep-current": {
   "created": "9/9/26",
   "creator": "Wallpaper Studio"
  },
@@ -17,10 +9,6 @@
  },
  "ember-glow": {
   "created": "9/9/26",
-  "creator": "Wallpaper Studio"
- },
- "emerald-veil": {
-  "created": "9/10/26",
   "creator": "Wallpaper Studio"
  },
  "ocean-glow": {
@@ -44,6 +32,18 @@
   "created": "9/21/26"
  },
  "dune-sea": {
+  "creator": "Wallpaper Studio",
+  "created": "9/21/26"
+ },
+ "emerald-lake": {
+  "creator": "Wallpaper Studio",
+  "created": "9/21/26"
+ },
+ "stellar-nursery": {
+  "creator": "Wallpaper Studio",
+  "created": "9/21/26"
+ },
+ "golden-swell": {
   "creator": "Wallpaper Studio",
   "created": "9/21/26"
  }

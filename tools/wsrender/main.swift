@@ -38,6 +38,7 @@ struct Options {
     var lat: Double? = nil
     var lon: Double? = nil
     var timeSeconds: Float? = nil
+    var moment = ""
 }
 
 func parseOptions() -> Options {
@@ -54,7 +55,8 @@ func parseOptions() -> Options {
           wsrender SCENE.metal --seam [--frames 300] [--size 480x300]         (loop seam/motion report)
           wsrender SCENE.metal --daycycle out.png [--size 640x400]   (time-of-day sheet: night..sunset..dusk)
           wsrender SCENE.metal --bench [--size 1280x800] [--frames 60]   (real-time cost, GPU ms/frame)
-          time of day: --hour 18.5 [--date 2026-06-21] [--lat 31.5 --lon 74.3] [--time SECONDS]
+          time of day: --hour 18.5 | --moment "golden hour" [--date 2026-06-21] [--lat 31.5 --lon 74.3] [--time SECONDS]
+                       (moments: night, dawn twilight, sunrise, morning, midday, golden hour, sunset, dusk, evening night)
           common: --tile 256 (smaller if the GPU times out)
         """)
         exit(0)
@@ -90,6 +92,7 @@ func parseOptions() -> Options {
         case "--lat": o.lat = Double(value(&i))
         case "--lon": o.lon = Double(value(&i))
         case "--time": o.timeSeconds = Float(value(&i))
+        case "--moment": o.moment = value(&i)
         case "--daycycle":
             o.mode = "daycycle"; o.out = value(&i)
         case "--bench":
@@ -258,7 +261,16 @@ func dateFor(hour: Double) -> Date {
     }
     return day.addingTimeInterval(hour * 3600)
 }
-var sky = Solar.state(at: dateFor(hour: opts.hour), lat: location.lat, lon: location.lon)
+var sky: SkyState = {
+    if !opts.moment.isEmpty {
+        let moments = Solar.keyMoments(on: dateFor(hour: 12), lat: location.lat, lon: location.lon)
+        guard let m = moments.first(where: { $0.0 == opts.moment }) else {
+            fail("unknown --moment \(opts.moment); use one of: \(moments.map { $0.0 }.joined(separator: ", "))")
+        }
+        return Solar.state(at: m.1, lat: location.lat, lon: location.lon)
+    }
+    return Solar.state(at: dateFor(hour: opts.hour), lat: location.lat, lon: location.lon)
+}()
 var gpuTimeTotal: Double = 0
 let gpuTimeLock = NSLock()
 

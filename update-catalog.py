@@ -128,9 +128,43 @@ def scan_pending():
     return entries
 
 
+def scan_dynamic():
+    """dynamic/*.metal — real-time time-of-day scenes; thumbnails rendered at golden hour."""
+    entries = []
+    directory = os.path.join(ROOT, "dynamic")
+    if not os.path.isdir(directory):
+        return entries
+    renderer = os.path.join(ROOT, "tools", "bin", "wsrender")
+    for filename in sorted(os.listdir(directory)):
+        base, ext = os.path.splitext(filename)
+        if ext.lower() != ".metal":
+            continue
+        thumb_name = f"{base}.jpg"
+        subprocess.check_call([
+            renderer, os.path.join(directory, filename), "--out", os.path.join(ROOT, "thumbs", thumb_name),
+            "--size", "960x600", "--spp", "4", "--moment", "golden hour",
+        ], stdout=subprocess.DEVNULL)
+        entry = {
+            "id": f"dynamic-{base}",
+            "title": title_of(base),
+            "kind": "dynamic",
+            "file": f"dynamic/{filename}",
+            "thumb": f"thumbs/{thumb_name}",
+            "width": 0,
+            "height": 0,
+        }
+        info = META.get(base, {})
+        if info.get("creator"):
+            entry["creator"] = info["creator"]
+        if info.get("created"):
+            entry["created"] = info["created"]
+        entries.append(entry)
+    return entries
+
+
 os.makedirs(os.path.join(ROOT, "thumbs"), exist_ok=True)
 os.makedirs(os.path.join(ROOT, "pending"), exist_ok=True)
-catalog = scan("stills", STILL_EXT, "still") + scan("live", LIVE_EXT, "live")
+catalog = scan("stills", STILL_EXT, "still") + scan("live", LIVE_EXT, "live") + scan_dynamic()
 with open(os.path.join(ROOT, "catalog.json"), "w") as f:
     json.dump(catalog, f, indent=2)
 pending = scan_pending()

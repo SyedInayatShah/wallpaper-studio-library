@@ -366,6 +366,55 @@ inline float3 ws_atmosphere(float3 rd, float3 sunDir, float sunIntensity = 22.0,
     return sunIntensity * (pRlh * kRlh * totRlh + pMie * kMie * totMie);
 }
 
+// Cheaper sky for REAL-TIME (dynamic) wallpapers: 8 view steps x 4 light steps
+// (~4x faster than ws_atmosphere, visually very close).
+inline float3 ws_atmosphereFast(float3 rd, float3 sunDir, float sunIntensity = 22.0,
+                                float mieG = 0.758, float altitude = 100.0) {
+    const float Rp = 6371e3, Ra = 6471e3;
+    const float3 kRlh = float3(5.5e-6, 13.0e-6, 22.4e-6);
+    const float kMie = 21e-6;
+    const float shRlh = 8e3, shMie = 1.2e3;
+    const int iSteps = 8, jSteps = 4;
+    float3 r0 = float3(0.0, Rp + max(altitude, 1.0), 0.0);
+    float3 r = normalize(rd);
+    float2 p = ws_raySphere(r0, r, Ra);
+    if (p.x > p.y || p.y < 0.0) return float3(0.0);
+    p.x = max(p.x, 0.0);
+    float2 pg = ws_raySphere(r0, r, Rp);
+    if (pg.x <= pg.y && pg.x > 0.0) p.y = min(p.y, pg.x);
+    float iStep = (p.y - p.x) / float(iSteps);
+    float iTime = p.x;
+    float3 totRlh = float3(0.0), totMie = float3(0.0);
+    float iOdRlh = 0.0, iOdMie = 0.0;
+    float mu = dot(r, sunDir), mumu = mu * mu, gg = mieG * mieG;
+    float pRlh = 3.0 / (16.0 * PI) * (1.0 + mumu);
+    float pMie = 3.0 / (8.0 * PI) * ((1.0 - gg) * (mumu + 1.0)) /
+                 (pow(1.0 + gg - 2.0 * mu * mieG, 1.5) * (2.0 + gg));
+    for (int i = 0; i < iSteps; i++) {
+        float3 iPos = r0 + r * (iTime + iStep * 0.5);
+        float iH = length(iPos) - Rp;
+        float odR = exp(-iH / shRlh) * iStep;
+        float odM = exp(-iH / shMie) * iStep;
+        iOdRlh += odR; iOdMie += odM;
+        float2 sg = ws_raySphere(iPos, sunDir, Rp);
+        if (sg.x <= sg.y && sg.x > 0.0) { iTime += iStep; continue; }
+        float jStep = ws_raySphere(iPos, sunDir, Ra).y / float(jSteps);
+        float jTime = 0.0, jOdRlh = 0.0, jOdMie = 0.0;
+        for (int j = 0; j < jSteps; j++) {
+            float3 jPos = iPos + sunDir * (jTime + jStep * 0.5);
+            float jH = length(jPos) - Rp;
+            jOdRlh += exp(-jH / shRlh) * jStep;
+            jOdMie += exp(-jH / shMie) * jStep;
+            jTime += jStep;
+        }
+        float3 attn = exp(-(kMie * (iOdMie + jOdMie) + kRlh * (iOdRlh + jOdRlh)));
+        totRlh += odR * attn;
+        totMie += odM * attn;
+        iTime += iStep;
+    }
+    return sunIntensity * (pRlh * kRlh * totRlh + pMie * kMie * totMie);
+}
+
 // Soft sun disk with limb darkening; add on top of the sky.
 inline float3 ws_sunDisk(float3 rd, float3 sunDir, float angularRadiusDeg, float3 radiance) {
     float c = dot(normalize(rd), sunDir);
