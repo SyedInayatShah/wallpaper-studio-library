@@ -108,23 +108,5 @@
     "height": 1200,
     "creator": "Wallpaper Studio",
     "created": "9/9/26"
-  },
-  {
-    "id": "dynamic-hidden-peak",
-    "title": "Hidden Peak",
-    "kind": "dynamic",
-    "file": "dynamic/hidden-peak.metal",
-    "thumb": "thumbs/hidden-peak.jpg",
-    "width": 0,
-    "height": 0
-  },
-  {
-    "id": "dynamic-living-valley",
-    "title": "Living Valley",
-    "kind": "dynamic",
-    "file": "dynamic/living-valley.metal",
-    "thumb": "thumbs/living-valley.jpg",
-    "width": 0,
-    "height": 0
   }
 ]
