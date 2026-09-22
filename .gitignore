@@ -1,3 +1,7 @@
 tools/bin/
 work/
 .DS_Store
+# The review queue is local-only — never pushed, never served by the CDNs.
+pending/
+pending.json
+thumbs/pending-*.jpg
