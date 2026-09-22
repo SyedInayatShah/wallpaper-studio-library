@@ -30,7 +30,7 @@ function specFor(s) {
 }
 const COMMON = `You are a world-class technical artist (Inigo Quilez / Shadertoy / film-VFX calibre) creating a wallpaper for a macOS wallpaper app's public library using ONLY procedural Metal shader scenes. Photoreal pieces must look like real photographs or high-end cinematic renders; stylized pieces must be gallery-quality original art — never a cheap "shader demo". Everything ORIGINAL (no copyrighted characters, brands, or copies of specific artworks).
 Toolkit — READ FIRST: ${LIB}/tools/README.md and ${LIB}/tools/wsrender/prelude.metal. Renderer: ${B}.
-Rules: scene source at the given path; renders under ${LIB}/work/<slug>/. Do NOT modify tools/, prelude.metal, stills/, live/, other scenes, catalog/meta files, or run git. Disk is tight (~8 GB free): delete superseded previews; keep your work folder under ~120 MB. Open every render with Read and critique it like a harsh art director; inspect 1:1 crops. The M1 GPU is shared — keep scenes efficient. Desktop composition: calm top strip and top-right, calm bottom strip, strong focal point, depth, comfortable brightness. Be token-efficient: think, render, look, fix — no long essays.`
+Rules: scene source at the given path; renders under ${LIB}/work/<slug>/. Do NOT modify tools/, prelude.metal, stills/, live/, other scenes, catalog/meta files, or run git. Disk is VERY tight (~4 GB free): delete superseded previews as you go; keep your work folder under ~80 MB; if "df -g /" shows < 2 GB available, delete your own previews before rendering more. Open every render with Read and critique it like a harsh art director; inspect 1:1 crops. The M1 GPU is shared — keep scenes efficient. Desktop composition: calm top strip and top-right, calm bottom strip, strong focal point, depth, comfortable brightness. Be token-efficient: think, render, look, fix — no long essays.`
 const createPrompt = s => `${COMMON}
 
 YOUR WALLPAPER: slug \`${s.slug}\` — ${s.kind.toUpperCase()} — style ${s.style.toUpperCase()}. Your TITLE and ART BRIEF are in ${BRIEFS} under the key "${s.slug}" — read that file first and follow the brief exactly (it may include the owner's feedback, which is the highest priority).
@@ -110,14 +110,21 @@ Titles are in ${BRIEFS} under each slug.
 Steps (bash):
 1. cd ${LIB}
 2. Per item — still: cp final to stills/<slug>.jpg; live: verify the .mp4 is ≤ 19 MB (else skip and report), cp to live/<slug>.mp4; dynamic: cp the scene snapshot to dynamic/<slug>.metal.
-3. For an item that REPLACES an old wallpaper: delete the old file (stills/<old>.jpg or live/<old>.mp4, whichever exists) and thumbs/<old>.jpg, remove <old> from meta.json, and append to removed.json (a JSON array) {"id": "<oldKind>-<old>", "title": "<Old Title Case>", "reason": "Replaced by the new hyper-realistic version — see Explore.", "removed": "<today M/D/YY>"}.
+3. For an item that REPLACES an old wallpaper: delete the old file (stills/<old>.jpg or live/<old>.mp4, whichever exists; update-catalog.py deletes its stale thumbnail), remove <old> from meta.json, and append to removed.json (a JSON array) {"id": "<oldKind>-<old>", "title": "<Old Title Case>", "reason": "Replaced by the new hyper-realistic version — see Explore.", "removed": "<today M/D/YY>"}.
 4. meta.json (object keyed by slug): set {"creator": "Wallpaper Studio", "created": "<today via \`date +%-m/%-d/%y\`>"} for each published slug (python3 is fine).
 5. ./update-catalog.py
-6. git add -A && git commit -m "Add wallpapers: <slugs>" && git push
-7. Purge CDN: for f in catalog.json removed.json pending.json; do curl -s "https://purge.jsdelivr.net/gh/SyedInayatShah/wallpaper-studio-library@main/$f" >/dev/null; done
+6. Before committing: "ls dynamic/" must contain ONLY .metal scenes of kind dynamic (a publisher once copied still scenes there — delete any stray that is not a dynamic item) and "git status --short" must show no scenes/, tools/ or work/ paths staged. Then, in ONE command (the maintainer app may rewrite catalog.json in between, so it must be regenerated right before staging): ./update-catalog.py && git add stills live dynamic meta.json removed.json catalog.json thumbs && (git diff --cached --quiet || git commit -m "Add wallpapers: <slugs>") && git pull --rebase --autostash && git push — stage ONLY those paths (never add everything: scenes/, tools/ and drafts must not be published); if git reports an index.lock or a rejected push, wait 30 s, "git pull --rebase", and retry (another agent may be committing maintenance changes). If ./update-catalog.py fails, run "python3 -m py_compile update-catalog.py"; if it is mid-edit by a maintainer, wait 5 min and retry (max 3 times).
+7. Purge CDN: for f in catalog.json removed.json; do curl -s "https://purge.jsdelivr.net/gh/SyedInayatShah/wallpaper-studio-library@main/$f" >/dev/null; done
 8. Free disk: in work/<slug>/ of each published item delete preview/iteration images and judge crops, keeping final*, scene-*.metal, sheet*, poster*, day*.
 Never touch stills/dm.* or other wallpapers' files. Be concise. Return the structured summary.`, { ...PUB, label: `publish:group${i / CHUNK + 1}`, phase: 'Publish', schema: PUBLISHED })
   summary.push({ group: i / CHUNK + 1, wallpapers: done.map(d => ({ slug: d.scene.slug, kind: d.scene.kind, avg: Number(d.best.avg.toFixed(2)), final: d.best.result.finalPath })), published: pub ? pub.published : [], skipped: pub ? pub.skipped : done.map(d => d.scene.slug), failed: chunk.filter(s => !done.some(d => d.scene.slug === s.slug)).map(s => s.slug) })
   log(`group ${i / CHUNK + 1} published: ${pub ? pub.published.join(', ') : 'PUBLISH FAILED'}`)
 }
-return { limitHit, groups: summary }
+let endless = null
+if (!limitHit && args.continueForever) {
+  log('all planned wallpapers done — starting the endless still → live → dynamic loop (standing order)')
+  const existing = [...(args.existing || []), ...ITEMS.map(s => s.slug)]
+  try { endless = await workflow({ scriptPath: `${LIB}/tools/workflows/continuous-wallpapers.js` }, { existing, maxCycles: args.maxCycles || 60 }) }
+  catch (e) { log(`endless loop failed to start: ${e}`) }
+}
+return { limitHit, groups: summary, endless }

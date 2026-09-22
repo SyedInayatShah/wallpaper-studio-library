@@ -17,19 +17,58 @@ enum Solar {
     private static func deg(_ r: Double) -> Double { r * 180 / .pi }
     private static func norm360(_ x: Double) -> Double { let v = x.truncatingRemainder(dividingBy: 360); return v < 0 ? v + 360 : v }
 
+    private static let locationLock = NSLock()
+    private static var locationCache: [String: (lat: Double, lon: Double)] = [:]
+
     /// Approximate coordinates of the current time zone's reference city (from the
-    /// system tz database). No location permission needed.
+    /// system tz database). No location permission needed. Cached per zone identifier.
     static func timeZoneLocation(_ tz: TimeZone = .current) -> (lat: Double, lon: Double) {
-        if let text = try? String(contentsOfFile: "/usr/share/zoneinfo/zone.tab", encoding: .utf8) {
+        locationLock.lock()
+        defer { locationLock.unlock() }
+        if let c = locationCache[tz.identifier] { return c }
+        let c = lookupLocation(tz)
+        locationCache[tz.identifier] = c
+        return c
+    }
+
+    private static func lookupLocation(_ tz: TimeZone) -> (lat: Double, lon: Double) {
+        let base = "/usr/share/zoneinfo/"
+        if let text = try? String(contentsOfFile: base + "zone.tab", encoding: .utf8) {
+            var coords: [String: (lat: Double, lon: Double)] = [:]
             for line in text.split(separator: "\n") where !line.hasPrefix("#") {
                 let cols = line.split(separator: "\t")
-                if cols.count >= 3, cols[2] == tz.identifier, let c = parseISO6709(String(cols[1])) {
-                    return c
-                }
+                if cols.count >= 3, let c = parseISO6709(String(cols[1])) { coords[String(cols[2])] = c }
+            }
+            // Follow aliases (Asia/Calcutta -> Asia/Kolkata, US/Pacific -> America/Los_Angeles…).
+            var name = tz.identifier
+            for _ in 0..<4 {
+                if let c = coords[name] { return c }
+                guard let target = aliasTarget(of: name, base: base), target != name else { break }
+                name = target
             }
         }
-        // Fallback: longitude from the UTC offset, a mid-northern latitude.
-        return (35, Double(tz.secondsFromGMT()) / 3600 * 15)
+        // Fallback: longitude from the standard (non-DST) UTC offset, a mid-northern latitude.
+        let standard = Double(tz.secondsFromGMT()) - tz.daylightSavingTimeOffset()
+        return (35, standard / 3600 * 15)
+    }
+
+    /// Canonical zone for a tz alias: a symlink target, or a link line in
+    /// tzdata.zi ("L Target Alias") / backward ("Link Target Alias").
+    private static func aliasTarget(of name: String, base: String) -> String? {
+        let path = base + name
+        if let dest = try? FileManager.default.destinationOfSymbolicLink(atPath: path) {
+            let resolved = URL(fileURLWithPath: dest, relativeTo: URL(fileURLWithPath: path).deletingLastPathComponent())
+                .standardizedFileURL.path
+            if let r = resolved.range(of: "/zoneinfo/") { return String(resolved[r.upperBound...]) }
+        }
+        for (file, keyword) in [("tzdata.zi", "L"), ("backward", "Link")] {
+            guard let text = try? String(contentsOfFile: base + file, encoding: .utf8) else { continue }
+            for line in text.split(separator: "\n") {
+                let cols = line.split(whereSeparator: { $0 == " " || $0 == "\t" })
+                if cols.count >= 3, cols[0] == keyword, cols[2] == name { return String(cols[1]) }
+            }
+        }
+        return nil
     }
 
     /// Parses "+2452+06703" or "+404251-0740023" style coordinates.
@@ -84,7 +123,12 @@ enum Solar {
         let sunDec = deg(asin(sin(rad(eps)) * sin(rad(lambda))))
         var sun = horizontal(ra: sunRA, dec: sunDec, jd: jd, lat: lat, lon: lon)
         // Atmospheric refraction near the horizon (Bennett)
-        if sun.el > -2 { sun.el += 1.02 / tan(rad(sun.el + 10.3 / (sun.el + 5.11))) / 60 }
+        // faded in between -4° and -2° so twilight doesn't pop when it switches on.
+        if sun.el > -4 {
+            let r = 1.02 / tan(rad(sun.el + 10.3 / (sun.el + 5.11))) / 60
+            let t = min(1, (sun.el + 4) / 2)
+            sun.el += r * t * t * (3 - 2 * t)
+        }
 
         // Moon (low precision: age-based longitude, ±5° latitude from the node)
         let age = ((jd - 2451550.26) / 29.530588853).truncatingRemainder(dividingBy: 1)
@@ -114,20 +158,26 @@ enum Solar {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = timeZone
         let start = cal.startOfDay(for: day)
+        // Sample a day and a half so evening events past midnight are still found.
         var samples: [(Date, Float)] = []
-        for minute in stride(from: 0, through: 1440, by: 2) {
+        for minute in stride(from: 0, through: 2160, by: 2) {
             let d = start.addingTimeInterval(Double(minute) * 60)
             samples.append((d, state(at: d, lat: lat, lon: lon, timeZone: timeZone).sunElevation))
         }
+        let today = samples[0...720]
+        let noonIndex = today.indices.max(by: { samples[$0].1 < samples[$1].1 })!
+        let noon = samples[noonIndex].0
+        // Lowest sun before noon, so "night" always comes before dawn.
+        let midnight = samples[0...noonIndex].min(by: { $0.1 < $1.1 })!.0
+        // Rising crossings happen before solar noon, falling ones after it.
         func crossing(_ level: Float, rising: Bool) -> Date? {
-            for i in 1..<samples.count {
+            let range = rising ? 1..<(noonIndex + 1) : (noonIndex + 1)..<samples.count
+            for i in range {
                 let a = samples[i - 1].1, b = samples[i].1
                 if rising ? (a < level && b >= level) : (a > level && b <= level) { return samples[i].0 }
             }
             return nil
         }
-        let noon = samples.max(by: { $0.1 < $1.1 })!.0
-        let midnight = samples.min(by: { $0.1 < $1.1 })!.0
         var out: [(String, Date)] = [("night", midnight)]
         if let d = crossing(-5, rising: true) { out.append(("dawn twilight", d)) }
         if let d = crossing(1, rising: true) { out.append(("sunrise", d)) }
