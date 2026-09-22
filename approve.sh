@@ -20,7 +20,7 @@ if [[ ! "$NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
 fi
 
 TMP="$(mktemp -t wsapprove)"
-trap 'rm -f "$TMP" "$TMP.jpg"' EXIT
+trap 'rm -f "$TMP" "$TMP.jpg" "$TMP.png"' EXIT
 # -f: an HTTP error must fail here, never be saved as a "wallpaper".
 curl -fL --retry 2 -o "$TMP" "$URL"
 
@@ -42,6 +42,13 @@ case "$MIME" in
         echo "error: unsupported file type '$MIME' — nothing was published" >&2
         exit 1 ;;
 esac
+if [[ "$DIR" == stills ]] && ffprobe -v error -select_streams v:0 -read_intervals %+#1 \
+        -show_entries frame_side_data=side_data_type -of csv=p=0 "$TMP" | grep -q displaymatrix; then
+    # EXIF orientation (portrait phone shots): bake it into the pixels, so the
+    # file, its thumbnail and its catalog width/height are all upright.
+    ffmpeg -v error -y -i "$TMP" -map_metadata -1 -q:v 1 -f image2 -c:v "$([[ $EXT == png ]] && echo png || echo mjpeg)" "$TMP.$EXT"
+    mv "$TMP.$EXT" "$TMP"
+fi
 DETECTED=$([[ "$DIR" == live ]] && echo live || echo still)
 if [[ "$DETECTED" != "$KIND" ]]; then
     echo "note: the file is really a $DETECTED ($MIME) — publishing it as $DETECTED" >&2
@@ -85,20 +92,31 @@ json.dump(meta, open(meta_path, "w"), indent=2)
 EOF
 fi
 
-./update-catalog.py
-# Stage only what this approval touched — never unrelated work in the repo.
+# The catalog we commit lists only files git knows (--tracked-only), so it
+# can never point at drafts or at a production group that isn't committed
+# yet. Stage the new file first so it's one of them.
+git add -- "$TARGET"
+# Stage the catalog, the thumbnails it lists and tracked-thumbnail deletions —
+# never untracked thumbnails of files that aren't published.
+stage_catalog() {
+    ./update-catalog.py --tracked-only
+    git add -- catalog.json "$@"
+    python3 -c 'import json; print("\0".join(e["thumb"] for e in json.load(open("catalog.json"))), end="")' | xargs -0 git add --
+    git add -u -- thumbs
+}
+stage_catalog meta.json
 PATHS=("$TARGET" catalog.json meta.json thumbs)
-git add -A -- "${PATHS[@]}"
 if ! git diff --cached --quiet -- "${PATHS[@]}"; then
     git commit -q -m "Add community wallpaper: ${TARGET:t:r}" -- "${PATHS[@]}"
 fi
 if [[ "$(git rev-list --count '@{u}..HEAD')" -gt 0 ]]; then
     BEFORE="$(git rev-parse '@{u}')"
-    git pull -q --rebase --autostash -X theirs
+    # A conflict -X theirs can't settle must not leave the shared clone
+    # mid-rebase (the production publisher commits from it too).
+    git pull -q --rebase --autostash -X theirs || { git rebase --abort 2>/dev/null; exit 1; }
     if [[ "$(git rev-parse '@{u}')" != "$BEFORE" ]]; then
         # Someone else pushed meanwhile — rebuild so the catalog lists both.
-        ./update-catalog.py
-        git add -A -- catalog.json thumbs
+        stage_catalog
         git diff --cached --quiet -- catalog.json thumbs || git commit -q -m "Regenerate catalog" -- catalog.json thumbs
     fi
     git push -q

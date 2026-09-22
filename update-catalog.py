@@ -9,12 +9,20 @@ pending.json and thumbs/pending-*.jpg, which this script still writes for the
 app on the maintainer's Mac. Nothing in pending/ is ever public.
 
 Files that can't be measured (corrupt, wrong extension, unsupported type) are
-skipped with a warning on stderr — one bad file never blocks the rest.
+skipped with a warning on stderr — one bad file never blocks the rest. A missing
+TOOL (sips, ffprobe, ffmpeg, tools/bin/wsrender) is different: the script exits
+non-zero before writing anything, so it can never de-list a whole kind.
+
+--tracked-only lists only files git knows (committed or staged), for the
+maintainer's publishes: a commit must never ship catalog entries whose files
+aren't in it (drafts, a production group that isn't committed yet). Thumbnails
+of those untracked files are left alone.
 Thumbnails are named <kind>-<base>.jpg; thumbs no longer referenced by
 catalog.json or pending.json are deleted.
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -22,6 +30,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 STILL_EXT = {".jpg", ".jpeg", ".png"}
 LIVE_EXT = {".mp4", ".mov", ".gif"}
 THUMBS = os.path.join(ROOT, "thumbs")
+RENDERER = os.path.join(ROOT, "tools", "bin", "wsrender")
+TRACKED_ONLY = "--tracked-only" in sys.argv[1:]
+# Callers (launchd, the app, workflows) may not have Homebrew on PATH.
+os.environ["PATH"] = os.pathsep.join(
+    [os.environ.get("PATH", ""), "/opt/homebrew/bin", "/usr/local/bin"])
 
 
 def warn(message):
@@ -61,7 +74,7 @@ def dims(path):
             ], stderr=subprocess.DEVNULL).decode(errors="replace").strip().splitlines()
             parts = out[0].split(",") if out else []
             w, h = (int(parts[0]), int(parts[1])) if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit() else (0, 0)
-    except (subprocess.CalledProcessError, OSError, ValueError) as error:
+    except (subprocess.CalledProcessError, ValueError) as error:
         warn(f"can't measure {os.path.relpath(path, ROOT)}: {why(error)} — skipped")
         return None
     if w <= 0 or h <= 0:
@@ -90,7 +103,7 @@ def make_thumb(src, dest):
                     break
             else:
                 raise subprocess.CalledProcessError(1, "ffmpeg")
-    except (subprocess.CalledProcessError, OSError) as error:
+    except subprocess.CalledProcessError as error:
         warn(f"can't make a thumbnail for {os.path.relpath(src, ROOT)}: {why(error)} — skipped")
         return False
     return os.path.exists(dest)
@@ -120,6 +133,46 @@ def apply_meta(entry, info):
     return entry
 
 
+def tracked_files():
+    """Paths git knows under stills/, live/ and dynamic/ (index = committed or staged)."""
+    out = subprocess.check_output(
+        ["git", "-C", ROOT, "ls-files", "-z", "--", "stills", "live", "dynamic"])
+    return {p for p in out.decode().split("\0") if p}
+
+
+TRACKED = tracked_files() if TRACKED_ONLY else None
+
+
+def listed(folder, filename):
+    return TRACKED is None or f"{folder}/{filename}" in TRACKED
+
+
+def require_tools():
+    """Exit before writing anything if a tool some file needs is missing —
+    a missing tool must never look like 'every file of that kind is bad'."""
+    needed = set()
+    for folder in ("stills", "live", "dynamic", "pending"):
+        directory = os.path.join(ROOT, folder)
+        if not os.path.isdir(directory):
+            continue
+        for filename in os.listdir(directory):
+            ext = os.path.splitext(filename)[1].lower()
+            if folder != "pending" and not listed(folder, filename):
+                continue
+            if ext in STILL_EXT:
+                needed.add("sips")
+            elif ext in LIVE_EXT and folder != "dynamic":
+                needed.update(("ffprobe", "ffmpeg"))
+            elif ext == ".metal" and folder == "dynamic":
+                needed.add("wsrender")
+    missing = sorted(t for t in needed if t != "wsrender" and shutil.which(t) is None)
+    if "wsrender" in needed and not os.access(RENDERER, os.X_OK):
+        missing.append(os.path.relpath(RENDERER, ROOT))
+    if missing:
+        print(f"error: required tool(s) not found: {', '.join(missing)} — nothing was written", file=sys.stderr)
+        sys.exit(1)
+
+
 def scan(folder, exts, kind):
     entries = []
     directory = os.path.join(ROOT, folder)
@@ -131,6 +184,8 @@ def scan(folder, exts, kind):
         base, ext = os.path.splitext(filename)
         if ext.lower() not in exts:
             warn(f"{folder}/{filename}: unsupported type — not listed")
+            continue
+        if not listed(folder, filename):
             continue
         path = os.path.join(directory, filename)
         size = dims(path)
@@ -195,19 +250,18 @@ def scan_dynamic():
     directory = os.path.join(ROOT, "dynamic")
     if not os.path.isdir(directory):
         return entries
-    renderer = os.path.join(ROOT, "tools", "bin", "wsrender")
     for filename in sorted(os.listdir(directory)):
         base, ext = os.path.splitext(filename)
-        if ext.lower() != ".metal":
+        if ext.lower() != ".metal" or not listed("dynamic", filename):
             continue
         thumb_name = f"dynamic-{base}.jpg"
         thumb_path = os.path.join(THUMBS, thumb_name)
         try:
             subprocess.check_call([
-                renderer, os.path.join(directory, filename), "--out", thumb_path,
+                RENDERER, os.path.join(directory, filename), "--out", thumb_path,
                 "--size", "960x600", "--spp", "4", "--moment", "golden hour",
             ], stdout=subprocess.DEVNULL)
-        except (subprocess.CalledProcessError, OSError) as error:
+        except subprocess.CalledProcessError as error:
             if os.path.exists(thumb_path):
                 warn(f"dynamic/{filename}: render failed ({why(error)}) — keeping the previous thumbnail")
             else:
@@ -229,11 +283,19 @@ def prune_thumbs(entries):
     """Deletes thumbnails nothing references any more (removed/renamed files,
     old un-prefixed names, rejected submissions)."""
     keep = {os.path.basename(e["thumb"]) for e in entries}
+    if TRACKED is not None:
+        # Untracked working-tree files (drafts, a production group being
+        # published right now) keep their thumbnails — they're just not listed.
+        for folder, kind in (("stills", "still"), ("live", "live"), ("dynamic", "dynamic")):
+            directory = os.path.join(ROOT, folder)
+            if os.path.isdir(directory):
+                keep.update(f"{kind}-{os.path.splitext(n)[0]}.jpg" for n in os.listdir(directory))
     for name in os.listdir(THUMBS):
         if name.lower().endswith(".jpg") and name not in keep:
             os.remove(os.path.join(THUMBS, name))
 
 
+require_tools()
 os.makedirs(THUMBS, exist_ok=True)
 os.makedirs(os.path.join(ROOT, "pending"), exist_ok=True)
 catalog = scan("stills", STILL_EXT, "still") + scan("live", LIVE_EXT, "live") + scan_dynamic()
