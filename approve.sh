@@ -19,6 +19,14 @@ if [[ ! "$NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
     exit 1
 fi
 
+# The production publisher pulls with --rebase in this same clone: never add
+# or commit onto a rebase/merge that is stopped mid-way.
+rebasing() { [[ -d "$(git rev-parse --git-path rebase-merge)" || -d "$(git rev-parse --git-path rebase-apply)" ]]; }
+if rebasing || [[ -f "$(git rev-parse --git-path MERGE_HEAD)" || -n "$(git ls-files -u)" ]]; then
+    echo "error: another publish is in progress in this repo — nothing was changed. Try again shortly." >&2
+    exit 1
+fi
+
 TMP="$(mktemp -t wsapprove)"
 trap 'rm -f "$TMP" "$TMP.jpg" "$TMP.png"' EXIT
 # -f: an HTTP error must fail here, never be saved as a "wallpaper".
@@ -112,8 +120,13 @@ fi
 if [[ "$(git rev-list --count '@{u}..HEAD')" -gt 0 ]]; then
     BEFORE="$(git rev-parse '@{u}')"
     # A conflict -X theirs can't settle must not leave the shared clone
-    # mid-rebase (the production publisher commits from it too).
-    git pull -q --rebase --autostash -X theirs || { git rebase --abort 2>/dev/null; exit 1; }
+    # mid-rebase (the production publisher commits from it too) — but only
+    # a rebase this pull started is ours to abort.
+    WAS_REBASING=0; rebasing && WAS_REBASING=1
+    if ! git pull -q --rebase --autostash -X theirs; then
+        if [[ $WAS_REBASING == 0 ]] && rebasing; then git rebase --abort 2>/dev/null; fi
+        exit 1
+    fi
     if [[ "$(git rev-parse '@{u}')" != "$BEFORE" ]]; then
         # Someone else pushed meanwhile — rebuild so the catalog lists both.
         stage_catalog
