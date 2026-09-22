@@ -62,16 +62,27 @@ if [[ "$DETECTED" != "$KIND" ]]; then
     echo "note: the file is really a $DETECTED ($MIME) — publishing it as $DETECTED" >&2
 fi
 
-# Pick a slug nothing else uses (any kind, any extension, or meta.json) —
-# approving must never overwrite a live wallpaper. An identical file already
-# in the library (an earlier, interrupted run) is reused.
+# Pick a slug nothing else uses (any kind, any extension, meta.json, or a
+# removal notice in removed.json — reviving a removed wallpaper's ID would tell
+# its downloaders it "was removed") — approving must never overwrite a live
+# wallpaper. An identical file already in the library (an earlier,
+# interrupted run) is reused, but only if no different file shares its slug;
+# an identical queued (pending/) copy only if nothing public claims the slug.
 taken() {
-    local slug="$1" f
+    local slug="$1" f same=""
     for f in stills/"$slug".*(N) live/"$slug".*(N) dynamic/"$slug".*(N) pending/"$slug".*(N); do
-        cmp -s "$f" "$TMP" && { REUSE="$f"; return 1; }
-        return 0
+        if cmp -s "$f" "$TMP"; then same="${same:-$f}"; else return 0; fi
     done
-    SLUG="$slug" python3 -c 'import json,os,sys; m=json.load(open("meta.json")) if os.path.exists("meta.json") else {}; sys.exit(0 if os.environ["SLUG"] in m else 1)'
+    if [[ -n "$same" && "$same" != pending/* ]]; then REUSE="$same"; return 1; fi
+    SLUG="$slug" python3 -c '
+import json, os, sys
+slug = os.environ["SLUG"]
+meta = json.load(open("meta.json")) if os.path.exists("meta.json") else {}
+removed = json.load(open("removed.json")) if os.path.exists("removed.json") else []
+gone = {n.get("id", "").split("-", 1)[-1] for n in removed if "-" in n.get("id", "")}
+sys.exit(0 if slug in meta or slug in gone else 1)' && return 0
+    if [[ -n "$same" ]]; then REUSE="$same"; fi
+    return 1
 }
 SLUG="$NAME"; N=1; REUSE=""
 while taken "$SLUG"; do
@@ -104,6 +115,10 @@ fi
 # can never point at drafts or at a production group that isn't committed
 # yet. Stage the new file first so it's one of them.
 git add -- "$TARGET"
+# The tracked-only catalog must not stay in the shared working tree: a
+# production publish committing meanwhile would ship a catalog missing its
+# own new files. Put the full one back on exit, whatever happens.
+trap './update-catalog.py >/dev/null 2>&1 || true' EXIT
 # Stage the catalog, the thumbnails it lists and tracked-thumbnail deletions —
 # never untracked thumbnails of files that aren't published.
 stage_catalog() {
