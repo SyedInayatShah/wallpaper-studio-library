@@ -1,5 +1,16 @@
 [
   {
+    "id": "still-cloud-sea",
+    "title": "Cloud Sea",
+    "kind": "still",
+    "file": "stills/cloud-sea.jpg",
+    "thumb": "thumbs/still-cloud-sea.jpg",
+    "width": 3840,
+    "height": 2400,
+    "creator": "Wallpaper Studio",
+    "created": "9/23/26"
+  },
+  {
     "id": "still-dune-sea",
     "title": "Dune Sea",
     "kind": "still",
