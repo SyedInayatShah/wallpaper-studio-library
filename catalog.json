@@ -88,15 +88,26 @@
     "created": "9/9/26"
   },
   {
-    "id": "live-ember-glow",
-    "title": "Ember Glow",
+    "id": "live-firefly-forest",
+    "title": "Firefly Forest",
     "kind": "live",
-    "file": "live/ember-glow.mp4",
-    "thumb": "thumbs/live-ember-glow.jpg",
-    "width": 1920,
-    "height": 1200,
+    "file": "live/firefly-forest.mp4",
+    "thumb": "thumbs/live-firefly-forest.jpg",
+    "width": 2560,
+    "height": 1600,
     "creator": "Wallpaper Studio",
-    "created": "9/9/26"
+    "created": "9/23/26"
+  },
+  {
+    "id": "live-lighthouse-watch",
+    "title": "Lighthouse Watch",
+    "kind": "live",
+    "file": "live/lighthouse-watch.mp4",
+    "thumb": "thumbs/live-lighthouse-watch.jpg",
+    "width": 2560,
+    "height": 1600,
+    "creator": "Wallpaper Studio",
+    "created": "9/23/26"
   },
   {
     "id": "live-ocean-glow",
@@ -137,6 +148,17 @@
     "kind": "dynamic",
     "file": "dynamic/living-valley.metal",
     "thumb": "thumbs/dynamic-living-valley.jpg",
+    "width": 0,
+    "height": 0,
+    "creator": "Wallpaper Studio",
+    "created": "9/23/26"
+  },
+  {
+    "id": "dynamic-tide-cliffs",
+    "title": "Tide Cliffs",
+    "kind": "dynamic",
+    "file": "dynamic/tide-cliffs.metal",
+    "thumb": "thumbs/dynamic-tide-cliffs.jpg",
     "width": 0,
     "height": 0,
     "creator": "Wallpaper Studio",
