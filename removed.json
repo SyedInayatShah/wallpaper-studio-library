@@ -88,5 +88,11 @@
     "title": "Tide Cliffs",
     "reason": "Taken down \u2014 it didn't meet the quality bar. Cyber District and Lighthouse Watch are staying.",
     "removed": "9/29/26"
+  },
+  {
+    "id": "dynamic-lighthouse-watch-day",
+    "title": "Lighthouse Watch \u2014 Day & Night",
+    "reason": "Pulled: it ran far too slowly to draw live (about 13 frames a second). Being rebuilt.",
+    "removed": "9/29/26"
   }
 ]
