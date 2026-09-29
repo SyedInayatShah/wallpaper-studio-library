@@ -108,38 +108,5 @@
     "height": 0,
     "creator": "Wallpaper Studio",
     "created": "9/23/26"
-  },
-  {
-    "id": "dynamic-hidden-peak",
-    "title": "Hidden Peak",
-    "kind": "dynamic",
-    "file": "dynamic/hidden-peak.metal",
-    "thumb": "thumbs/dynamic-hidden-peak.jpg",
-    "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/23/26"
-  },
-  {
-    "id": "dynamic-living-valley",
-    "title": "Living Valley",
-    "kind": "dynamic",
-    "file": "dynamic/living-valley.metal",
-    "thumb": "thumbs/dynamic-living-valley.jpg",
-    "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/23/26"
-  },
-  {
-    "id": "dynamic-tide-cliffs",
-    "title": "Tide Cliffs",
-    "kind": "dynamic",
-    "file": "dynamic/tide-cliffs.metal",
-    "thumb": "thumbs/dynamic-tide-cliffs.jpg",
-    "width": 0,
-    "height": 0,
-    "creator": "Wallpaper Studio",
-    "created": "9/23/26"
   }
 ]

@@ -1,74 +1,92 @@
 [
   {
-    "removed" : "9\/10\/26",
-    "reason" : "Not good",
-    "id" : "still-t-carpet",
-    "title" : "T Carpet"
+    "removed": "9/10/26",
+    "reason": "Not good",
+    "id": "still-t-carpet",
+    "title": "T Carpet"
   },
   {
-    "title" : "Dm",
-    "reason" : "not a good one bro",
-    "removed" : "9\/19\/26",
-    "id" : "still-dm"
+    "title": "Dm",
+    "reason": "not a good one bro",
+    "removed": "9/19/26",
+    "id": "still-dm"
   },
   {
-    "title" : "Dusk Peaks",
-    "id" : "still-dusk-peaks",
-    "removed" : "9\/21\/26",
-    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+    "title": "Dusk Peaks",
+    "id": "still-dusk-peaks",
+    "removed": "9/21/26",
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore."
   },
   {
-    "title" : "Midnight Grid",
-    "id" : "still-midnight-grid",
-    "removed" : "9\/21\/26",
-    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+    "title": "Midnight Grid",
+    "id": "still-midnight-grid",
+    "removed": "9/21/26",
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore."
   },
   {
-    "id" : "still-ember-waves",
-    "title" : "Ember Waves",
-    "removed" : "9\/21\/26",
-    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+    "id": "still-ember-waves",
+    "title": "Ember Waves",
+    "removed": "9/21/26",
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore."
   },
   {
-    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
-    "title" : "Emerald Veil",
-    "removed" : "9\/21\/26",
-    "id" : "still-emerald-veil"
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore.",
+    "title": "Emerald Veil",
+    "removed": "9/21/26",
+    "id": "still-emerald-veil"
   },
   {
-    "title" : "Aurora Drift",
-    "removed" : "9\/21\/26",
-    "id" : "still-aurora-drift",
-    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+    "title": "Aurora Drift",
+    "removed": "9/21/26",
+    "id": "still-aurora-drift",
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore."
   },
   {
-    "reason" : "Replaced by the new hyper-realistic version — see Explore.",
-    "removed" : "9\/21\/26",
-    "id" : "still-deep-current",
-    "title" : "Deep Current"
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore.",
+    "removed": "9/21/26",
+    "id": "still-deep-current",
+    "title": "Deep Current"
   },
   {
-    "reason" : "nodt a nice one bto",
-    "removed" : "9\/21\/26",
-    "title" : "Soft Fog",
-    "id" : "still-soft-fog"
+    "reason": "nodt a nice one bto",
+    "removed": "9/21/26",
+    "title": "Soft Fog",
+    "id": "still-soft-fog"
   },
   {
-    "id" : "live-ember-glow",
-    "removed" : "9\/23\/26",
-    "title" : "Ember Glow",
-    "reason" : "Replaced by the new hyper-realistic version — see Explore."
+    "id": "live-ember-glow",
+    "removed": "9/23/26",
+    "title": "Ember Glow",
+    "reason": "Replaced by the new hyper-realistic version \u2014 see Explore."
   },
   {
-    "title" : "Aurora Flow",
-    "reason" : "a",
-    "id" : "live-aurora-flow",
-    "removed" : "9\/28\/26"
+    "title": "Aurora Flow",
+    "reason": "a",
+    "id": "live-aurora-flow",
+    "removed": "9/28/26"
   },
   {
-    "id" : "live-ocean-glow",
-    "reason" : "macarena",
-    "removed" : "9\/28\/26",
-    "title" : "Ocean Glow"
+    "id": "live-ocean-glow",
+    "reason": "macarena",
+    "removed": "9/28/26",
+    "title": "Ocean Glow"
+  },
+  {
+    "id": "dynamic-hidden-peak",
+    "title": "Hidden Peak",
+    "reason": "Taken down \u2014 it didn't meet the quality bar. Cyber District and Lighthouse Watch are staying.",
+    "removed": "9/29/26"
+  },
+  {
+    "id": "dynamic-living-valley",
+    "title": "Living Valley",
+    "reason": "Taken down \u2014 it didn't meet the quality bar. Cyber District and Lighthouse Watch are staying.",
+    "removed": "9/29/26"
+  },
+  {
+    "id": "dynamic-tide-cliffs",
+    "title": "Tide Cliffs",
+    "reason": "Taken down \u2014 it didn't meet the quality bar. Cyber District and Lighthouse Watch are staying.",
+    "removed": "9/29/26"
   }
 ]
