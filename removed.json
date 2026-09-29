@@ -94,5 +94,11 @@
     "title": "Lighthouse Watch \u2014 Day & Night",
     "reason": "Pulled: it ran far too slowly to draw live (about 13 frames a second). Being rebuilt.",
     "removed": "9/29/26"
+  },
+  {
+    "id": "dynamic-firefly-forest-day",
+    "title": "Firefly Forest \u2014 Day & Night",
+    "reason": "Taken down \u2014 the daytime version didn't look good enough. The night loop stays.",
+    "removed": "9/30/26"
   }
 ]
