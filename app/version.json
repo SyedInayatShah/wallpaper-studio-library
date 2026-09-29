@@ -1,8 +1,8 @@
 {
-  "version": "2.0",
-  "build": 20,
-  "notes": "First public build.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.0/Wallpaper-Studio-2.0.zip",
-  "sha256": "c6de64eaec18f966991b3b9cd92cdb8589af14ab8e6b48557b3b2a11cbc191b0",
+  "version": "2.1",
+  "build": 21,
+  "notes": "An update button, a menu-bar button, seconds for rotation, and the closed-window fix.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.1/Wallpaper-Studio-2.1.zip",
+  "sha256": "1b379456669666cfec2a916c1a41e6fa074151c2fc17db14e7edab353a2ae6bb",
   "minimumSystemVersion": "13.0"
 }
