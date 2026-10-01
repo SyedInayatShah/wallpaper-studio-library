@@ -1,8 +1,8 @@
 {
-  "version": "2.2",
-  "build": 22,
-  "notes": "An update button, Big Sur-style previews for dynamic wallpapers, and a signed build so macOS stops forgetting permissions.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.2/Wallpaper-Studio-2.2.zip",
-  "sha256": "319968d40ae723f13aec3dbaac3dc870a6cd18a263c051b7d219f79d2acbbb01",
+  "version": "2.3",
+  "build": 23,
+  "notes": "Updates now install themselves \u2014 nothing to press.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.3/Wallpaper-Studio-2.3.zip",
+  "sha256": "3531bb8f7b35e759b8233f1d11e2b7c9bb88542503dcf8c65471b3884722c1e7",
   "minimumSystemVersion": "13.0"
 }
