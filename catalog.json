@@ -106,6 +106,13 @@
     "thumb": "thumbs/dynamic-cyber-district.jpg",
     "width": 0,
     "height": 0,
+    "moments": [
+      "night",
+      "midday",
+      "golden hour",
+      "sunset",
+      "dusk"
+    ],
     "creator": "Wallpaper Studio",
     "created": "9/23/26"
   }

@@ -1,8 +1,8 @@
 export const meta = {
   name: 'continuous-wallpapers',
-  description: 'Endless cycle: invent, create, judge, refine and PUBLISH one still + one live loop + one dynamic scene per round, until stopped or limits are hit',
+  description: 'Endless cycle: invent, create, judge, refine and PUBLISH one live loop + one dynamic time-of-day scene per round, until stopped or limits are hit',
   phases: [
-    { title: 'Ideas', detail: 'invent three original, distinct briefs (still, live, dynamic)' },
+    { title: 'Ideas', detail: 'invent two original, distinct briefs (live, dynamic)' },
     { title: 'Create', detail: 'one artist per wallpaper' },
     { title: 'Judge', detail: '3-lens panel' },
     { title: 'Refine', detail: 'one fix round if needed' },
@@ -22,7 +22,7 @@ const IDEAS = {
   type: 'object',
   properties: {
     briefs: {
-      type: 'array', minItems: 3, maxItems: 3,
+      type: 'array', minItems: 2, maxItems: 2,
       items: {
         type: 'object',
         properties: {
@@ -123,14 +123,14 @@ const CATEGORIES = ['nature & scenery', 'weather & seasons', 'cities & architect
 
 const summaryOf = []
 for (let cycle = 0; cycle < MAX_CYCLES; cycle++) {
-  const cat = [CATEGORIES[(cycle * 3) % CATEGORIES.length], CATEGORIES[(cycle * 3 + 1) % CATEGORIES.length], CATEGORIES[(cycle * 3 + 2) % CATEGORIES.length]]
+  const cat = [CATEGORIES[(cycle * 2) % CATEGORIES.length], CATEGORIES[(cycle * 2 + 1) % CATEGORIES.length]]
   phase('Ideas')
-  const ideas = await robust(`You are the creative director of a macOS wallpaper app's public library of ORIGINAL procedural wallpapers. Invent THREE new wallpaper briefs for this round: exactly one STILL, one LIVE loop (choose frames 240/300/450/600 with the matching maxrate 12/12/9/7 — vary lengths across rounds), and one DYNAMIC time-of-day scene (a real-time scene driven by the actual clock: sunrise, midday, sunset, night — either a made-up-but-natural landscape or a fictional/sci-fi/cyberpunk place). Mix styles: mostly hyper-realistic (style "photoreal"), sometimes abstract/surreal/stylized art (style "stylized").
-Theme suggestions for this round (bend them creatively): still → ${cat[0]}; live → ${cat[1]}; dynamic → ${cat[2]}.
+  const ideas = await robust(`You are the creative director of a macOS wallpaper app's public library of ORIGINAL procedural wallpapers. Invent TWO new wallpaper briefs for this round: exactly one LIVE loop (choose frames 240/300/450/600 with the matching maxrate 12/12/9/7 — vary lengths across rounds) and one DYNAMIC time-of-day scene (a real-time scene driven by the actual clock: sunrise, midday, sunset, night — either a made-up-but-natural landscape or a fictional/sci-fi/cyberpunk place). NO stills — the owner only wants live loops and dynamic scenes now. Mix styles: mostly hyper-realistic (style "photoreal"), sometimes abstract/surreal/stylized art (style "stylized").
+Theme suggestions for this round (bend them creatively): live → ${cat[0]}; dynamic → ${cat[1]}.
 Read ${LIB}/catalog.json and avoid anything similar to these existing/in-progress titles: ${made.join(', ')}.
 Slugs: kebab-case, unique. Briefs: rich and specific (camera, lighting, materials, mood, what moves and how it loops, what changes across the day for dynamics), 120-220 words each, original — no copyrighted characters, brands, or copies of known artworks. Return the structured briefs.`, { ...ART, label: `ideas#${cycle + 1}`, phase: 'Ideas', schema: IDEAS }, 3)
   if (!ideas) { log('idea generation failed repeatedly — stopping (limits?)'); break }
-  const briefs = ideas.briefs.filter(b => ['still', 'live', 'dynamic'].includes(b.kind) && !made.includes(b.slug))
+  const briefs = ideas.briefs.filter(b => ['live', 'dynamic'].includes(b.kind) && !made.includes(b.slug))
   briefs.forEach(b => { made.push(b.slug); if (!b.style) b.style = 'photoreal' })
   log(`round ${cycle + 1}: ${briefs.map(b => b.kind + ':' + b.slug).join(', ')}`)
 
