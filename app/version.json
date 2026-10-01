@@ -1,8 +1,8 @@
 {
-  "version": "2.1",
-  "build": 21,
-  "notes": "An update button, a menu-bar button, seconds for rotation, and the closed-window fix.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.1/Wallpaper-Studio-2.1.zip",
-  "sha256": "1b379456669666cfec2a916c1a41e6fa074151c2fc17db14e7edab353a2ae6bb",
+  "version": "2.2",
+  "build": 22,
+  "notes": "An update button, Big Sur-style previews for dynamic wallpapers, and a signed build so macOS stops forgetting permissions.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.2/Wallpaper-Studio-2.2.zip",
+  "sha256": "319968d40ae723f13aec3dbaac3dc870a6cd18a263c051b7d219f79d2acbbb01",
   "minimumSystemVersion": "13.0"
 }
