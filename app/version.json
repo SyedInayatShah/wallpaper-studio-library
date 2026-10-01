@@ -1,8 +1,8 @@
 {
-  "version": "2.3",
-  "build": 23,
-  "notes": "Updates now install themselves \u2014 nothing to press.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.3/Wallpaper-Studio-2.3.zip",
-  "sha256": "3531bb8f7b35e759b8233f1d11e2b7c9bb88542503dcf8c65471b3884722c1e7",
+  "version": "2.4",
+  "build": 24,
+  "notes": "The desktop dots are gone; the menu-bar popup gained Open, Explore and Apple shortcuts.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.4/Wallpaper-Studio-2.4.zip",
+  "sha256": "2e9bf8ecaa0cdad870ca4a1229de89bc9edb25cc308ea28d848f5913171cf88c",
   "minimumSystemVersion": "13.0"
 }
