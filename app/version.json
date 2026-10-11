@@ -1,8 +1,8 @@
 {
-  "version": "2.4",
-  "build": 24,
-  "notes": "The desktop dots are gone; the menu-bar popup gained Open, Explore and Apple shortcuts.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.4/Wallpaper-Studio-2.4.zip",
-  "sha256": "2e9bf8ecaa0cdad870ca4a1229de89bc9edb25cc308ea28d848f5913171cf88c",
+  "version": "2.5",
+  "build": 25,
+  "notes": "Cards no longer overlap when you hover them, at any card size.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.5/Wallpaper-Studio-2.5.zip",
+  "sha256": "",
   "minimumSystemVersion": "13.0"
 }
