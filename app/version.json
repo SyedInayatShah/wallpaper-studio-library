@@ -1,8 +1,8 @@
 {
-  "version": "2.6",
-  "build": 26,
-  "notes": "Saved rotation sets, and rotation now starts the moment you turn it on.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.6/Wallpaper-Studio-2.6.zip",
-  "sha256": "0a62545e53670bf65241ebe63bbf13041fb8a4b43b67857696e7206c0a99d9d8",
+  "version": "2.7",
+  "build": 27,
+  "notes": "Shuffle for saved sets, with no wallpaper repeating until two others have played.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.7/Wallpaper-Studio-2.7.zip",
+  "sha256": "f55f65363d2f19c05afe51e2ae88675c209b5d8486586b993b9e531538539135",
   "minimumSystemVersion": "13.0"
 }
