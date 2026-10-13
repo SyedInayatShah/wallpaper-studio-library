@@ -1,8 +1,8 @@
 {
-  "version": "2.5",
-  "build": 25,
-  "notes": "Cards no longer overlap when you hover them, at any card size.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.5/Wallpaper-Studio-2.5.zip",
-  "sha256": "27b5f41fd0c4a987a0f24144b657db555e88aac66bf055507d92b98722bf2361",
+  "version": "2.6",
+  "build": 26,
+  "notes": "Saved rotation sets, and rotation now starts the moment you turn it on.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.6/Wallpaper-Studio-2.6.zip",
+  "sha256": "0a62545e53670bf65241ebe63bbf13041fb8a4b43b67857696e7206c0a99d9d8",
   "minimumSystemVersion": "13.0"
 }
