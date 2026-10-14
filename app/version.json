@@ -1,8 +1,8 @@
 {
-  "version": "2.7",
-  "build": 27,
-  "notes": "Shuffle for saved sets, with no wallpaper repeating until two others have played.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v2.7/Wallpaper-Studio-2.7.zip",
-  "sha256": "f55f65363d2f19c05afe51e2ae88675c209b5d8486586b993b9e531538539135",
+  "version": "3.0",
+  "build": 30,
+  "notes": "Sign in once with your email, then it never asks again.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v3.0/Wallpaper-Studio-3.0.zip",
+  "sha256": "9ec44ff68d14fca9cafb3fcaf8412eb89a4d43df3cae587fb6c5de8858d0817f",
   "minimumSystemVersion": "13.0"
 }
