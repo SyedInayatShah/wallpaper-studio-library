@@ -1,8 +1,8 @@
 {
-  "version": "3.1",
-  "build": 31,
-  "notes": "Fixes for the admin copy; nothing to do for everyone else.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v3.1/Wallpaper-Studio-3.1.zip",
-  "sha256": "40eb614421de6378089a735aee1d5651b526ed32b5d80b781fec41cf2be0edae",
+  "version": "3.2",
+  "build": 32,
+  "notes": "Everything moved to one place. Nothing for you to do.",
+  "url": "https://github.com/SyedInayatShah/WallpaperStudio/releases/download/v3.2/Wallpaper-Studio-3.2.zip",
+  "sha256": "d6ac0710ca36c4db7125440dcce6f23e3cbaebff088ef1fceb0cff7ba821346d",
   "minimumSystemVersion": "13.0"
 }
