@@ -1,8 +1,8 @@
 {
-  "version": "3.0",
-  "build": 30,
-  "notes": "Sign in once with your email, then it never asks again.",
-  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v3.0/Wallpaper-Studio-3.0.zip",
-  "sha256": "9ec44ff68d14fca9cafb3fcaf8412eb89a4d43df3cae587fb6c5de8858d0817f",
+  "version": "3.1",
+  "build": 31,
+  "notes": "Fixes for the admin copy; nothing to do for everyone else.",
+  "url": "https://github.com/SyedInayatShah/wallpaper-studio-library/releases/download/v3.1/Wallpaper-Studio-3.1.zip",
+  "sha256": "40eb614421de6378089a735aee1d5651b526ed32b5d80b781fec41cf2be0edae",
   "minimumSystemVersion": "13.0"
 }
